@@ -14,7 +14,7 @@ library(haven)
 
 
 #### --------- set up environment ----------------- ####
-setwd(wd <- "~/Projects/Malaria collab/Spat21 Mosquito Analysis - Sam/")
+wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
 allspecies_fp = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
 anopheles_fp  = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
 anopheles2_fp = paste0(wd, "Data/Data Sets/Individual_female_anoph_long.dta")
@@ -48,7 +48,7 @@ str(qpcr_data)
 # Output a CSV file of all the variable names.
 allnames <- c(names(allspecies_data), names(anopheles_widedata), names(qpcr_data))
 allnames <- data.frame(allnames)
-write_csv(allnames,"Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
+write_csv(allnames, paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv"))
 
 
 #### ------------- clean each variable in mosquito data sets ---------------- ####
@@ -100,12 +100,12 @@ names(anopheles_data) <- c("household.id","repeat.instrument","repeat.instance",
                            "collection.done.by","samples.prepared.by","species.id.done.by","total.number.of.mosquitos.in.the.household",
                            "sample.id.head","sample.id.abdomen","abdominal.status","species.type","specify.species","comment",
                            "form.checked.by","form.checked.date","form.entered.by","form.entered.on","complete")
-temp_count <- 1
-for(i in 1:nrow(anopheles_widedata)) {
-  for(j in 1:16) {
-    if()
-  }
-}
+# temp_count <- 1
+# for(i in 1:nrow(anopheles_widedata)) {
+#   for(j in 1:16) {
+#     if()
+#   }
+# }
 
 
 # Reformat qPCR data columns.
