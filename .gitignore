@@ -1,0 +1,9 @@
+# Data #
+*.csv
+*.dta
+*.xlsx
+
+# Protocols #
+*.docx
+*.pdf
+*.pptx
