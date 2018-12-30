@@ -17,7 +17,7 @@ library(haven)
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
 allspecies_fp = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
 anopheles_fp  = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-anopheles2_fp = paste0(wd, "Data/Data Sets/Individual_female_anoph_long.dta")
+# anopheles2_fp = paste0(wd, "Data/Data Sets/Individual_female_anoph_long.dta")  # STATA
 qpcr_fp       = paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
 zero = 1e-6  # threshold for zero CT value
 
@@ -26,16 +26,17 @@ zero = 1e-6  # threshold for zero CT value
 
 # Read in the mosquito descriptive data sets.
 # Read in the data set with all mosquito species.
-allspecies_data <- read.csv(allspecies_fp, stringsAsFactors=FALSE)
+allspecies_data    <- read.csv(allspecies_fp, stringsAsFactors=FALSE)
 # Read in the wide data set with only anopheles mosquitoes.
 anopheles_widedata <- read.csv(anopheles_fp, stringsAsFactors=FALSE)
-# anopheles2_data <- read_dta(anopheles2_fp)  # STATA
+# anopheles2_data    <- read_dta(anopheles2_fp)  # STATA
 # Read in the mosquito qPCR data sets.
-qpcr_data <- read.csv(qpcr_fp, stringsAsFactors=FALSE)
+qpcr_data          <- read.csv(qpcr_fp, stringsAsFactors=FALSE)
 
 # Clean column names.
 names(anopheles_widedata) <- tolower(gsub("..", ".", names(anopheles_widedata), fixed=TRUE))
 names(anopheles_widedata) <- tolower(gsub("\\.$", "", names(anopheles_widedata)))  # remove trailing periods
+anopheles_widedata <- rename(anopheles_widedata, form.entered.date=form.entered.on)  # consistent name
 
 # Look at summaries of all the data sets.
 summary(allspecies_data)
@@ -69,12 +70,10 @@ temp_cols <- c("repeat.instance",
                "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex")
 allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], as.integer)
 temp_cols <- c("collection.date","form.checked.date","form.entered.date")
-allspecies_data$collection.date   <- mdy(allspecies_data$collection.date)
-allspecies_data$form.checked.date <- mdy(allspecies_data$form.checked.date)
-allspecies_data$form.entered.date <- mdy(allspecies_data$form.entered.date)
+allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], mdy)
 allspecies_data$collection.time   <- as.logical(allspecies_data$collection.time)
 
-# Reformat anopheles data columns.
+# Reformat anopheles data columns from wide to long.
 temp_cols <- c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
                "form.checked.by","form.entered.by","complete")
 for(i in 1:16) {
@@ -84,7 +83,7 @@ for(i in 1:16) {
 anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], factor)
 temp_cols <- c("repeat.instance","total.number.of.mosquitos.in.the.household")
 anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], as.integer)
-temp_cols <- c("collection.date","form.checked.date","form.entered.on")
+temp_cols <- c("collection.date","form.checked.date","form.entered.date")
 anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], mdy)
 anopheles_widedata$collection.time <- as.logical(anopheles_widedata$collection.time)
 # STATA operations, same as above.
