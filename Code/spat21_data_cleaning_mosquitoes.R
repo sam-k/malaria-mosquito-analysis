@@ -17,7 +17,6 @@ library(haven)
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
 allspecies_fp = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
 anopheles_fp  = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-# anopheles2_fp = paste0(wd, "Data/Data Sets/Individual_female_anoph_long.dta")  # STATA
 qpcr_fp       = paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
 zero = 1e-6  # threshold for zero CT value
 
@@ -29,7 +28,6 @@ zero = 1e-6  # threshold for zero CT value
 allspecies_data    <- read.csv(allspecies_fp, stringsAsFactors=FALSE)
 # Read in the wide data set with only anopheles mosquitoes.
 anopheles_widedata <- read.csv(anopheles_fp, stringsAsFactors=FALSE)
-# anopheles2_data    <- read_dta(anopheles2_fp)  # STATA
 # Read in the mosquito qPCR data sets.
 qpcr_data          <- read.csv(qpcr_fp, stringsAsFactors=FALSE)
 
@@ -86,14 +84,6 @@ anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], as.i
 temp_cols <- c("collection.date","form.checked.date","form.entered.date")
 anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], mdy)
 anopheles_widedata$collection.time <- as.logical(anopheles_widedata$collection.time)
-# STATA operations, same as above.
-# temp_cols <- c("household_id","redcap_repeat_instrument","sampleid","specify","comment")
-# anopheles2_data[temp_cols]      <- lapply(anopheles2_data[temp_cols], factor)
-# temp_cols <- c("redcap_repeat_instance","index","village2","staffname2","sampleby","speciesid","totalnumber","abdominal","speciestype")
-# anopheles2_data[temp_cols]      <- lapply(anopheles2_data[temp_cols], as.integer)
-# anopheles2_data$collectiondate2 <- mdy(anopheles2_data$collectiondate2)
-# anopheles2_data$collecttime     <- as.logical(anopheles2_data$collecttime)
-# convert wide format to long format
 anopheles_data <- data.frame(matrix(nrow=16*nrow(anopheles_widedata), ncol=21))  # overshoot # of rows
 names(anopheles_data) <- c("household.id","repeat.instrument","repeat.instance","collection.date","collection.time","village",
                            "collection.done.by","samples.prepared.by","species.id.done.by","total.number.of.mosquitos.in.the.household",
