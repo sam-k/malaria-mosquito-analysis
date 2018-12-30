@@ -7,3 +7,6 @@
 *.docx
 *.pdf
 *.pptx
+
+# Temp files #
+*.rhistory
