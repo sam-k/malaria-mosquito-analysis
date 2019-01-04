@@ -55,4 +55,5 @@ qpcr_groupeddata %<>% filter(!is.na(sample.id))  # trim empty rows
 merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id")
 
 
-## -------- allspecies_data ----------------- ####
+#### -------- clean up environment ----------------- ####
+rm(i, list=ls(pattern="^temp_"))

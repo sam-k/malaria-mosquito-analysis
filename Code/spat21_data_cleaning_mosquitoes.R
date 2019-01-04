@@ -96,8 +96,7 @@ anopheles_data[anopheles_data==""] <- NA
 # Rename and reformat anopheles_data columns.
 anopheles_data %<>%
   mutate_at(c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
-              "abdominal.status","species.type","specify.species","comment",
-              "form.checked.by","form.entered.by","complete"), factor) %>%
+              "abdominal.status","species.type","specify.species","form.checked.by","form.entered.by","complete"), factor) %>%
   mutate_at(c("repeat.instance","total.number.of.mosquitos.in.the.household"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
   mutate(collection.time = as.logical(collection.time))
