@@ -56,7 +56,7 @@ write_csv(allnames, paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictio
 counts <- matrix(rep(0,15), nrow=3, ncol=5, dimnames=list(c("allspecies","anopheles","qpcr"),
                                                           c("hb_positive","hb_negative","pf_positive","pf_negative","missing")))
 
-# Rename and reformat all species data columns.
+# Rename and reformat all_species_data columns.
 names(allspecies_data) <- c("household.id","repeat.instrument","repeat.instance","collection.date","collection.time","village","collection.done.by",
                             "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
                             "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex",
@@ -71,33 +71,37 @@ temp_cols <- c("collection.date","form.checked.date","form.entered.date")
 allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], mdy)
 allspecies_data$collection.time   <- as.logical(allspecies_data$collection.time)
 
-# Reformat anopheles data columns from wide to long.
-temp_cols <- c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
-               "form.checked.by","form.entered.by","complete")
-for(i in 1:16) {
-  temp_cols <- unlist(list(temp_cols, paste0(
-    c("sample.id.head.","sample.id.abdomen.","abdominal.status.","species.type.","specify.species.","comment."), i)))
-}
-anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], factor)
-temp_cols <- c("repeat.instance","total.number.of.mosquitos.in.the.household")
-anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], as.integer)
-temp_cols <- c("collection.date","form.checked.date","form.entered.date")
-anopheles_widedata[temp_cols]      <- lapply(anopheles_widedata[temp_cols], mdy)
-anopheles_widedata$collection.time <- as.logical(anopheles_widedata$collection.time)
-anopheles_data <- data.frame(matrix(nrow=16*nrow(anopheles_widedata), ncol=21))  # overshoot # of rows
+# Reformat anopheles_data columns from wide to long.
+anopheles_data <- as.data.frame(matrix(nrow=16*nrow(anopheles_widedata), ncol=21), stringsAsFactors=FALSE)  # long data, overshooting # of rows
 names(anopheles_data) <- c("household.id","repeat.instrument","repeat.instance","collection.date","collection.time","village",
                            "collection.done.by","samples.prepared.by","species.id.done.by","total.number.of.mosquitos.in.the.household",
                            "sample.id.head","sample.id.abdomen","abdominal.status","species.type","specify.species","comment",
-                           "form.checked.by","form.checked.date","form.entered.by","form.entered.on","complete")
-# temp_count <- 1
-# for(i in 1:nrow(anopheles_widedata)) {
-#   for(j in 1:16) {
-#     if()
-#   }
-# }
+                           "form.checked.by","form.checked.date","form.entered.by","form.entered.date","complete")
+temp_count <- 1
+for(i in 1:nrow(anopheles_widedata)) {
+  header <- anopheles_widedata[i, 1:10]
+  footer <- anopheles_widedata[i, 107:111]
+  for(j in 1:16) {
+    if(anopheles_widedata[[i, 5+6*j]] != "") {  # first column of j-th "block"
+      anopheles_data[temp_count, ] <- c(header, anopheles_widedata[i, (5+6*j):(10+6*j)], footer)
+      temp_count <- temp_count + 1
+    }
+  }
+}
+anopheles_data <- filter(anopheles_data, !is.na(household.id))  # trim empty rows
+anopheles_data[anopheles_data==""] <- NA
+# Rename and reformat anopheles_data columns.
+temp_cols <- c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
+               "form.checked.by","form.entered.by","complete")
+anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], factor)
+temp_cols <- c("repeat.instance","total.number.of.mosquitos.in.the.household")
+anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], as.integer)
+temp_cols <- c("collection.date","form.checked.date","form.entered.date")
+anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], mdy)
+anopheles_data$collection.time     <- as.logical(anopheles_data$collection.time)
 
 
-# Reformat qPCR data columns.
+# Reformat qpcr_data columns.
 qpcr_data[qpcr_data == "Undetermined"] <- NA
 temp_cols <- c("Sample.Name","Experiment.Name")
 qpcr_data[temp_cols] <- lapply(qpcr_data[temp_cols], factor)
