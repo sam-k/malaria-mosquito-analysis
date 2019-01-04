@@ -112,10 +112,10 @@ qpcr_data[is.na(qpcr_data)] <- NA  # correct NaNs to NAs
 # Process qPCR CT values.
 qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
-qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<=zero & qpcr_data$HbtubCT2<=zero & qpcr_data$pfr364CT1<=zero & qpcr_data$pfr364CT2<=zero)] <- NA
+qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<zero & qpcr_data$HbtubCT2<zero & qpcr_data$pfr364CT1<zero & qpcr_data$pfr364CT2<zero)] <- NA
 qpcr_data$Has.Pf[which(is.na(qpcr_data$Has.Hb))] <- NA
 qpcr_data %<>%
-  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2"), function(x) { ifelse(x<=zero, NA, x) })
+  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Q1","pfr364Q2"), function(x) { ifelse(x<zero, NA, x) })
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>0  | qpcr_data$HbtubCT2>0)]  <- TRUE
 qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>0 | qpcr_data$pfr364CT2>0)] <- TRUE
 counts["qpcr","missing"]     <- sum(is.na(qpcr_data$Has.Hb))
@@ -125,7 +125,7 @@ counts["qpcr","hb_negative"] <- nrow(qpcr_data) - counts["qpcr","hb_positive"] -
 counts["qpcr","pf_negative"] <- nrow(qpcr_data) - counts["qpcr","pf_positive"] - counts["qpcr","missing"] + 1  # no parasitemia for M06 A0026
 
 
-## -------- export cleaned data ----------------- ####
+#### -------- export cleaned data ----------------- ####
 
 # Export cleaned data as CSV files.
 write_csv(allspecies_data, CLEANED_ALLSPECIES_FP)
@@ -133,3 +133,7 @@ write_csv(anopheles_data, CLEANED_ANOPHELES_FP)
 write_csv(qpcr_data, CLEANED_QPCR_FP)
 # Export cleaned data as a single Rdata file.
 save(allspecies_data, anopheles_data, qpcr_data, file=CLEANED_FP)
+
+
+#### -------- clean up environment ----------------- ####
+rm(header, footer, i, j, list=ls(pattern="^temp_"))
