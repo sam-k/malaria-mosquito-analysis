@@ -10,7 +10,7 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(lubridate)
-library(haven)
+library(magrittr)
 
 
 #### --------- set up environment ----------------- ####
@@ -61,15 +61,13 @@ names(allspecies_data) <- c("household.id","repeat.instrument","repeat.instance"
                             "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
                             "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex",
                             "form.checked.by","form.checked.date","form.entered.by","form.entered.date","complete")
-temp_cols <- c("household.id","repeat.instrument","village","collection.done.by","form.checked.by","form.entered.by","complete")
-allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], factor)
-temp_cols <- c("repeat.instance",
+allspecies_data %<>%
+  mutate_at(c("household.id","repeat.instrument","village","collection.done.by","form.checked.by","form.entered.by","complete"), factor) %>%
+  mutate_at(c("repeat.instance",
                "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
-               "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex")
-allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], as.integer)
-temp_cols <- c("collection.date","form.checked.date","form.entered.date")
-allspecies_data[temp_cols]        <- lapply(allspecies_data[temp_cols], mdy)
-allspecies_data$collection.time   <- as.logical(allspecies_data$collection.time)
+               "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex"), as.integer) %>%
+  mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
+  mutate(collection.time = as.logical(collection.time))
 
 # Reformat anopheles_data columns from wide to long.
 anopheles_data <- as.data.frame(matrix(nrow=16*nrow(anopheles_widedata), ncol=21), stringsAsFactors=FALSE)  # long data, overshooting # of rows
@@ -88,33 +86,31 @@ for(i in 1:nrow(anopheles_widedata)) {
     }
   }
 }
-anopheles_data <- filter(anopheles_data, !is.na(household.id))  # trim empty rows
+anopheles_data %<>% filter(!is.na(household.id))  # trim empty rows
 anopheles_data[anopheles_data==""] <- NA
 # Rename and reformat anopheles_data columns.
-temp_cols <- c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
-               "form.checked.by","form.entered.by","complete")
-anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], factor)
-temp_cols <- c("repeat.instance","total.number.of.mosquitos.in.the.household")
-anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], as.integer)
-temp_cols <- c("collection.date","form.checked.date","form.entered.date")
-anopheles_data[temp_cols]          <- lapply(anopheles_data[temp_cols], mdy)
-anopheles_data$collection.time     <- as.logical(anopheles_data$collection.time)
+anopheles_data %<>%
+  mutate_at(c("household.id","repeat.instrument","village","collection.done.by","samples.prepared.by","species.id.done.by",
+              "abdominal.status","species.type","specify.species","comment",
+              "form.checked.by","form.entered.by","complete"), factor) %>%
+  mutate_at(c("repeat.instance","total.number.of.mosquitos.in.the.household"), as.integer) %>%
+  mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
+  mutate(collection.time = as.logical(collection.time))
 
 
 # Reformat qpcr_data columns.
 qpcr_data[qpcr_data == "Undetermined"] <- NA
-temp_cols <- c("Sample.Name","Experiment.Name")
-qpcr_data[temp_cols] <- lapply(qpcr_data[temp_cols], factor)
-temp_cols <- c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Std5a","pfr364Std5b","pfr364Std6a","pfr364Std6b")
-qpcr_data[temp_cols] <- lapply(qpcr_data[temp_cols], as.numeric)
+qpcr_data %<>%
+  mutate_at(c("Sample.Name","Experiment.Name"), factor) %>%
+  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Std5a","pfr364Std5b","pfr364Std6a","pfr364Std6b"), as.numeric)
 qpcr_data[is.na(qpcr_data)] <- NA  # correct NaNs to NAs
 # Process qPCR CT values.
 qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<=zero & qpcr_data$HbtubCT2<=zero & qpcr_data$pfr364CT1<=zero & qpcr_data$pfr364CT2<=zero)] <- NA
 qpcr_data$Has.Pf[which(is.na(qpcr_data$Has.Hb))] <- NA
-temp_cols <- c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2")
-qpcr_data[temp_cols] <- lapply(qpcr_data[temp_cols], function(x) { ifelse(x<=zero, NA, x) })
+qpcr_data %<>%
+  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2"), function(x) { ifelse(x<=zero, NA, x) })
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>0  | qpcr_data$HbtubCT2>0)]  <- TRUE
 qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>0 | qpcr_data$pfr364CT2>0)] <- TRUE
 counts["qpcr","missing"]     <- sum(is.na(qpcr_data$Has.Hb))
