@@ -15,14 +15,10 @@ library(magrittr)
 
 #### --------- set up environment ----------------- ####
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-ALLSPECIES_FP         = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
-ANOPHELES_FP          = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-QPCR_FP               = paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
-DATA_DICT_FP          = paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
-CLEANED_ALLSPECIES_FP = paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv")
-CLEANED_ANOPHELES_FP  = paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
-CLEANED_QPCR_FP       = paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
-CLEANED_FP            = paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
+ALLSPECIES_FP = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
+ANOPHELES_FP  = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
+QPCR_FP       = paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
+DATA_DICT_FP  = paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
 zero = 1e-6  # threshold for zero CT value
 
 
@@ -68,8 +64,8 @@ names(allspecies_data) <- c("household.id","repeat.instrument","repeat.instance"
 allspecies_data %<>%
   mutate_at(c("household.id","repeat.instrument","village","collection.done.by","form.checked.by","form.entered.by","complete"), factor) %>%
   mutate_at(c("repeat.instance",
-              "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
-              "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex"), as.integer) %>%
+               "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
+               "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
   mutate(collection.time = as.logical(collection.time))
 
@@ -124,11 +120,9 @@ counts["qpcr","hb_negative"] <- nrow(qpcr_data) - counts["qpcr","hb_positive"] -
 counts["qpcr","pf_negative"] <- nrow(qpcr_data) - counts["qpcr","pf_positive"] - counts["qpcr","missing"] + 1  # no parasitemia for M06 A0026
 
 
-## -------- export cleaned data ----------------- ####
+## -------- allspecies_data ----------------- ####
 
-# Export cleaned data as CSV files.
-write_csv(allspecies_data, CLEANED_ALLSPECIES_FP)
-write_csv(anopheles_data, CLEANED_ANOPHELES_FP)
-write_csv(qpcr_data, CLEANED_QPCR_FP)
-# Export cleaned data as a single Rdata file.
-save(allspecies_data, anopheles_data, qpcr_data, file=CLEANED_FP)
+# Household ID
+table(anopheles_widedata$household.id, useNA="always")
+str(anopheles_widedata$household.id)
+attr(anopheles_widedata$household.id, "labels")
