@@ -15,15 +15,15 @@ library(magrittr)
 
 #### --------- set up environment ----------------- ####
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-ALLSPECIES_FP         = paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
-ANOPHELES_FP          = paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-QPCR_FP               = paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
-DATA_DICT_FP          = paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
-CLEANED_ALLSPECIES_FP = paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv")
-CLEANED_ANOPHELES_FP  = paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
-CLEANED_QPCR_FP       = paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
-CLEANED_FP            = paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
-zero = 1e-6  # threshold for zero CT value
+ALLSPECIES_FP         <- paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
+ANOPHELES_FP          <- paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
+QPCR_FP               <- paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
+DATA_DICT_FP          <- paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
+CLEANED_ALLSPECIES_FP <- paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv")
+CLEANED_ANOPHELES_FP  <- paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
+CLEANED_QPCR_FP       <- paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
+CLEANED_FP            <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
+zero <- 1e-6  # threshold for zero CT value
 
 
 #### --------- read in mosquito data ----------------- ####
@@ -39,7 +39,7 @@ qpcr_data          <- read.csv(QPCR_FP, stringsAsFactors=FALSE)
 # Clean column names.
 names(anopheles_widedata) <- tolower(gsub("..", ".", names(anopheles_widedata), fixed=TRUE))
 names(anopheles_widedata) <- tolower(gsub("\\.$", "", names(anopheles_widedata)))  # remove trailing periods
-anopheles_widedata %<>% rename(form.entered.date=form.entered.on)  # consistent name
+anopheles_widedata %<>% rename(form.entered.date = form.entered.on)  # consistent name
 
 # Look at summaries of all the data sets.
 summary(allspecies_data)
