@@ -16,13 +16,16 @@ library(magrittr)
 #### --------- set up environment ----------------- ####
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
 CLEANED_FP <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
-# zero = 1e-6  # threshold for zero CT value
 
 
 #### --------- read in mosquito data ----------------- ####
+load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
 
-# Load saved cleaned data: allspecies_data, anopheles_data, qpcr_data.
-load(CLEANED_FP)
+
+#### ------------- merge mosquito data sets ---------------- ####
+
+# Extract sample IDs from anopheles_data.
+anopheles_data$sample.id <- gsub("\\s?H\\s?", " ", anopheles_data$sample.id.head)
 
 # Group qpcr_data by sample ID.
 qpcr_data$Sample.ID <- gsub("\\s?[AH]\\s?", " ", qpcr_data$Sample.Name)
@@ -48,8 +51,8 @@ for(i in 1:nrow(qpcr_data)) {
 }
 qpcr_groupeddata %<>% filter(!is.na(sample.id))  # trim empty rows
 
-
-#### ------------- clean each variable in mosquito data sets ---------------- ####
+# Merge anopheles_data with qpcr_data.
+merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id")
 
 
 ## -------- allspecies_data ----------------- ####
