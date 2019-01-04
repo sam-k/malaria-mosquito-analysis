@@ -23,6 +23,7 @@ CLEANED_ALLSPECIES_FP <- paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv"
 CLEANED_ANOPHELES_FP  <- paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
 CLEANED_QPCR_FP       <- paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
 CLEANED_FP            <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
+LOG_FP                <- paste0(wd, "Code/spat21_log.txt")
 zero <- 1e-6  # threshold for zero CT value
 
 
