@@ -5,8 +5,8 @@ allspecies_data dims:
 2091 obs
 
 anopheles_widedata dims:
-111 vars
-669 obs
+111 vars (10 + 16*6 + 5)
+669 obs (or more)
 
 qpcr_data dims:
 24 vars
@@ -26,7 +26,7 @@ anopheles_data dims:
 
 # ------ CLEAN QPCR DATA ------ #
 
-All CT==0 marked as missing
+All zero CTs marked as missing
 
 Any positive CT marked as positive
 
@@ -35,3 +35,4 @@ Everything else marked as negative
 	Neg	Pos	Missing
 Hb	1541	1372	1
 Pf	2580	333	1
+

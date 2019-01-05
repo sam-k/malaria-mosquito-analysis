@@ -1,7 +1,7 @@
 # ----------------------------------------- #
 #        Spat21 Data Set Cleaning           #
 #              Mosquito Data                #
-#             January 4, 2018               #
+#            December 18, 2018              #
 #            K. Sumner, S. Kim              #
 # ----------------------------------------- #
 
@@ -59,7 +59,8 @@ str(allspecies_data)
 str(anopheles_widedata)
 str(qpcr_data)
 write.log("allspecies_data dims:", paste(ncol(allspecies_data), "vars"), paste(nrow(allspecies_data), "obs"))
-write.log("anopheles_widedata dims:", paste(ncol(anopheles_widedata), "vars"), paste(nrow(anopheles_widedata), "obs"))
+write.log("anopheles_widedata dims:", paste(ncol(anopheles_widedata), "vars (10 + 16*6 + 5)"),
+                                      paste(nrow(anopheles_widedata), "obs (or more)"))
 write.log("qpcr_data dims:", paste(ncol(qpcr_data), "vars"), paste(nrow(qpcr_data), "obs"))
 
 # Output a CSV file of all the variable names.
@@ -133,17 +134,14 @@ qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>=zero  | qpcr_data$HbtubCT2>=zero)]  <
 qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>=zero | qpcr_data$pfr364CT2>=zero)] <- TRUE
 write.log("Any positive CT marked as positive")
 write.log("Everything else marked as negative")
+# Tabulate qPCR CT counts.
 qpcr_counts <- rbind(table(qpcr_data$Has.Hb, useNA="always"), table(qpcr_data$Has.Pf, useNA="always"))
 rownames(qpcr_counts) <- c("Hb","Pf")
 colnames(qpcr_counts) <- c("Neg","Pos","Missing")
 qpcr_counts[["Pf","Pos"]] <- qpcr_counts[["Pf","Pos"]] - 1  # no parasitemia for M06 A0026
 qpcr_counts[["Pf","Neg"]] <- qpcr_counts[["Pf","Neg"]] + 1  # no parasitemia for M06 A0026
 write.table(qpcr_counts, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
-
-
-#### -------- validate cleaned data ----------------- ####
-
-
+write.log()
 
 
 #### -------- export cleaned data ----------------- ####
