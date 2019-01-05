@@ -1,0 +1,37 @@
+# ------ IMPORT RAW DATA ------ #
+
+allspecies_data dims:
+26 vars
+2091 obs
+
+anopheles_widedata dims:
+111 vars
+669 obs
+
+qpcr_data dims:
+24 vars
+2914 obs
+
+# ------ CLEAN ALL DESCRIPTIVE DATA ------ #
+
+Renamed columns
+
+# ------ CLEAN ANOPH. DESCRIPTIVE DATA ------ #
+
+Reformatted data from wide to long
+
+anopheles_data dims:
+21 vars
+1495 obs
+
+# ------ CLEAN QPCR DATA ------ #
+
+All CT==0 marked as missing
+
+Any positive CT marked as positive
+
+Everything else marked as negative
+
+	Neg	Pos	Missing
+Hb	1541	1372	1
+Pf	2580	333	1

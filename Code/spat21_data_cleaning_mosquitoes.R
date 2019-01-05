@@ -23,11 +23,20 @@ CLEANED_ALLSPECIES_FP <- paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv"
 CLEANED_ANOPHELES_FP  <- paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
 CLEANED_QPCR_FP       <- paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
 CLEANED_FP            <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
-LOG_FP                <- paste0(wd, "Code/spat21_log.txt")
+LOG_FP                <- paste0(wd, "Code/spat21_data_cleaning_mosquitoes.log")
+close(file(LOG_FP, open="w"))  # clear log file
 zero <- 1e-6  # threshold for zero CT value
+write.log <- function(...) {
+  for(temp_output in list(...)) {
+    write(temp_output, file=LOG_FP, append=TRUE)
+  }
+  write("", file=LOG_FP, append=TRUE)
+}
 
 
 #### --------- read in mosquito data ----------------- ####
+
+write.log("# ------ IMPORT RAW DATA ------ #")
 
 # Read in the mosquito descriptive data sets.
 # Read in the data set with all mosquito species.
@@ -49,6 +58,9 @@ summary(qpcr_data)
 str(allspecies_data)
 str(anopheles_widedata)
 str(qpcr_data)
+write.log("allspecies_data dims:", paste(ncol(allspecies_data), "vars"), paste(nrow(allspecies_data), "obs"))
+write.log("anopheles_widedata dims:", paste(ncol(anopheles_widedata), "vars"), paste(nrow(anopheles_widedata), "obs"))
+write.log("qpcr_data dims:", paste(ncol(qpcr_data), "vars"), paste(nrow(qpcr_data), "obs"))
 
 # Output a CSV file of all the variable names.
 allnames <- data.frame(c(names(allspecies_data), names(anopheles_widedata), names(qpcr_data)))
@@ -57,11 +69,8 @@ write_csv(allnames, DATA_DICT_FP)
 
 #### ------------- clean each variable in mosquito data sets ---------------- ####
 
-# Positive, negative, missing counts for each data set.
-counts <- matrix(rep(0,15), nrow=3, ncol=5, dimnames=list(c("allspecies","anopheles","qpcr"),
-                                                          c("hb_positive","hb_negative","pf_positive","pf_negative","missing")))
-
 # Rename and reformat all_species_data columns.
+write.log("# ------ CLEAN ALL DESCRIPTIVE DATA ------ #")
 names(allspecies_data) <- c("household.id","repeat.instrument","repeat.instance","collection.date","collection.time","village","collection.done.by",
                             "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
                             "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex",
@@ -73,8 +82,10 @@ allspecies_data %<>%
               "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
   mutate(collection.time = as.logical(collection.time))
+write.log("Renamed columns")
 
 # Reformat anopheles_data columns from wide to long.
+write.log("# ------ CLEAN ANOPH. DESCRIPTIVE DATA ------ #")
 anopheles_data <- as.data.frame(matrix(nrow=16*nrow(anopheles_widedata), ncol=21), stringsAsFactors=FALSE)  # long data, overshooting # of rows
 names(anopheles_data) <- c("household.id","repeat.instrument","repeat.instance","collection.date","collection.time","village",
                            "collection.done.by","samples.prepared.by","species.id.done.by","total.number.of.mosquitos.in.the.household",
@@ -100,9 +111,11 @@ anopheles_data %<>%
   mutate_at(c("repeat.instance","total.number.of.mosquitos.in.the.household"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
   mutate(collection.time = as.logical(collection.time))
-
+write.log("Reformatted data from wide to long")
+write.log("anopheles_data dims:", paste(ncol(anopheles_data), "vars"), paste(nrow(anopheles_data), "obs"))
 
 # Reformat qpcr_data columns.
+write.log("# ------ CLEAN QPCR DATA ------ #")
 qpcr_data[qpcr_data == "Undetermined"] <- NA
 qpcr_data %<>%
   mutate_at(c("Sample.Name","Experiment.Name"), factor) %>%
@@ -113,15 +126,24 @@ qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<zero & qpcr_data$HbtubCT2<zero & qpcr_data$pfr364CT1<zero & qpcr_data$pfr364CT2<zero)] <- NA
 qpcr_data$Has.Pf[which(is.na(qpcr_data$Has.Hb))] <- NA
+write.log("All zero CTs marked as missing")
 qpcr_data %<>%
   mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Q1","pfr364Q2"), function(x) { ifelse(x<zero, NA, x) })
-qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>0  | qpcr_data$HbtubCT2>0)]  <- TRUE
-qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>0 | qpcr_data$pfr364CT2>0)] <- TRUE
-counts["qpcr","missing"]     <- sum(is.na(qpcr_data$Has.Hb))
-counts["qpcr","hb_positive"] <- sum(qpcr_data$Has.Hb, na.rm=TRUE)
-counts["qpcr","pf_positive"] <- sum(qpcr_data$Has.Pf, na.rm=TRUE) - 1  # no parasitemia for M06 A0026
-counts["qpcr","hb_negative"] <- nrow(qpcr_data) - counts["qpcr","hb_positive"] - counts["qpcr","missing"]
-counts["qpcr","pf_negative"] <- nrow(qpcr_data) - counts["qpcr","pf_positive"] - counts["qpcr","missing"] + 1  # no parasitemia for M06 A0026
+qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>=zero  | qpcr_data$HbtubCT2>=zero)]  <- TRUE
+qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>=zero | qpcr_data$pfr364CT2>=zero)] <- TRUE
+write.log("Any positive CT marked as positive")
+write.log("Everything else marked as negative")
+qpcr_counts <- rbind(table(qpcr_data$Has.Hb, useNA="always"), table(qpcr_data$Has.Pf, useNA="always"))
+rownames(qpcr_counts) <- c("Hb","Pf")
+colnames(qpcr_counts) <- c("Neg","Pos","Missing")
+qpcr_counts[["Pf","Pos"]] <- qpcr_counts[["Pf","Pos"]] - 1  # no parasitemia for M06 A0026
+qpcr_counts[["Pf","Neg"]] <- qpcr_counts[["Pf","Neg"]] + 1  # no parasitemia for M06 A0026
+write.table(qpcr_counts, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+
+
+#### -------- validate cleaned data ----------------- ####
+
+
 
 
 #### -------- export cleaned data ----------------- ####
