@@ -127,7 +127,7 @@ qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<zero & qpcr_data$HbtubCT2<zero & qpcr_data$pfr364CT1<zero & qpcr_data$pfr364CT2<zero)] <- NA
 qpcr_data$Has.Pf[which(is.na(qpcr_data$Has.Hb))] <- NA
-write.log("All zero CTs marked as missing")
+write.log("Zero CT is defined as CT<0.000001", "All zero CTs marked as missing")
 qpcr_data %<>%
   mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Q1","pfr364Q2"), function(x) { ifelse(x<zero, NA, x) })
 qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>=zero  | qpcr_data$HbtubCT2>=zero)]  <- TRUE

@@ -26,6 +26,7 @@ anopheles_data dims:
 
 # ------ CLEAN QPCR DATA ------ #
 
+Zero CT is defined as CT<0.000001
 All zero CTs marked as missing
 
 Any positive CT marked as positive
