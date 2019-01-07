@@ -14,8 +14,9 @@ library(magrittr)
 
 #### --------- set up environment ----------------- ####
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-CLEANED_FP <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
-LOG_FP     <- paste0(wd, "Code/spat21_data_checks_mosquitoes.log")
+CLEANED_FP   <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
+VALIDATED_FP <- paste0(wd, "Data/Data Sets/validated_data.Rdata")
+LOG_FP       <- paste0(wd, "Code/spat21_data_checks_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
   for(temp_output in list(...)) {
@@ -82,16 +83,16 @@ temp_species <- anopheles_data$species.type[which(anopheles_data$sample.id %in% 
 anopheles_data$species.type[anopheles_data$sample.id %in% temp_ids]     <- temp_status
 anopheles_data$abdominal.status[anopheles_data$sample.id %in% temp_ids] <- temp_species
 anopheles_data$abdominal.status[is.na(anopheles_data$abdominal.status)] <- "Undetermined"
-write.log(paste(paste("Abd statuses and species for", paste(temp_ids, collapse=", ")), "appeared swapped and were corrected"))
+write.log(paste("Abd statuses and species for", paste(temp_ids, collapse=", "), "appeared swapped and were corrected"))
 write.log("Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined")
 
 # Perform data checks for qpcr_data.
 write.log("# ------ VALIDATE QPCR DATA ------ #")
+write.log("No parasitemia for M06 A0026, considered as missing")
 
 
 #### -------- export validated data ----------------- ####
-
-
+save(allspecies_data, anopheles_data, qpcr_data, file=VALIDATED_FP)
 
 
 #### -------- clean up environment ----------------- ####
