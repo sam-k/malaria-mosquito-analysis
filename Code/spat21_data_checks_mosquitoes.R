@@ -35,6 +35,8 @@ load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
 # Perform data checks for anopheles_data.
 write.log("# ------ VALIDATE ANOPH. DESCRIPTIVE DATA ------ #")
 anopheles_data$sample.id <- gsub("\\s?[AH]\\s?", " ", anopheles_data$sample.id.head)
+anopheles_data$sample.id[is.na(anopheles_data$sample.id.head)] <-
+  gsub("\\s?[AH]\\s?", " ", anopheles_data$sample.id.abdomen[is.na(anopheles_data$sample.id.head)])
 # Check if village names are consistent.
 anoph_village_discrepancies <- anopheles_data %>%
   select(household.id, village, sample.id.head, sample.id.abdomen) %>%
@@ -88,6 +90,8 @@ write.log("Abd statuses for K05 00038, K14 00041 were missing and were corrected
 
 # Perform data checks for qpcr_data.
 write.log("# ------ VALIDATE QPCR DATA ------ #")
+qpcr_data$Sample.ID <- gsub("\\s?[AH]\\s?", " ", qpcr_data$Sample.Name)
+qpcr_data$Head.Abd  <- gsub("[^AH]", "", qpcr_data$Sample.Name)
 write.log("No parasitemia for M06 A0026, considered as missing")
 
 
