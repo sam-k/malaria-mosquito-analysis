@@ -145,8 +145,8 @@ write.log("Everything else marked as negative")
 qpcr_counts <- rbind(table(qpcr_data$Has.Hb, useNA="always"), table(qpcr_data$Has.Pf, useNA="always"))
 rownames(qpcr_counts) <- c("Hb","Pf")
 colnames(qpcr_counts) <- c("Neg","Pos","Missing")
-qpcr_counts[["Pf","Pos"]] <- qpcr_counts[["Pf","Pos"]] - 1  # no parasitemia for M06 A0026
-qpcr_counts[["Pf","Neg"]] <- qpcr_counts[["Pf","Neg"]] + 1  # no parasitemia for M06 A0026
+qpcr_counts[["Pf","Pos"]] <- qpcr_counts[["Pf","Pos"]] - 1  # no parasitemia for M06 A00026
+qpcr_counts[["Pf","Neg"]] <- qpcr_counts[["Pf","Neg"]] + 1  # no parasitemia for M06 A00026
 write.table(qpcr_counts, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 
