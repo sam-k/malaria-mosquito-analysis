@@ -1,4 +1,14 @@
 # ------ VALIDATE ANOPH. DESCRIPTIVE DATA ------ #
 
+All village names match
+
+	H	A
+K	404	404
+M	859	859
+S	232	231
+
+S02 A00001 is missing (as noted in comment)
+K05 A00034, M01 A00058, S07 A00008 are commented as missing, but present in data
+
 # ------ VALIDATE QPCR DATA ------ #
 
