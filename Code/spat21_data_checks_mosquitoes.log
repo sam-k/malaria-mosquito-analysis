@@ -8,7 +8,30 @@ M	859	859
 S	232	231
 
 S02 A00001 is missing (as noted in comment)
-K05 A00034, M01 A00058, S07 A00008 are commented as missing, but present in data
+
+K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing
+
+Sample ID	Abd Status	Species Type
+K01 00026	An. gambiae	Gravid
+K05 00038	NA	Un-identified
+K14 00041	NA	Un-identified
+M07 00011	Un-identified	Blood Fed
+M07 00031	An. gambiae	Gravid
+M07 00047	An. funestus	Blood Fed
+M07 00062	An. gambiae	Half Gravid
+M07 00092	An. gambiae	Blood Fed
+M07 00109	An. gambiae	Half Gravid
+M07 00128	An. gambiae	Half Gravid
+M07 00185	An. gambiae	Unfed
+M09 00018	Un-identified	Half Gravid
+M09 00038	An. gambiae	Blood Fed
+M09 00103	An. gambiae	Gravid
+M14 00018	An. gambiae	Blood Fed
+M14 00031	An. gambiae	Unfed
+
+Abd statuses and species for K01 00026, M07 00011, M07 00031, M07 00047, M07 00062, M07 00092, M07 00109, M07 00128, M07 00185, M09 00018, M09 00038, M09 00103, M14 00018, M14 00031 appeared swapped and were corrected
+
+Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
 
 # ------ VALIDATE QPCR DATA ------ #
 
