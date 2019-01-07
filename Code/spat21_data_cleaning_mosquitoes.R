@@ -19,9 +19,6 @@ ALLSPECIES_FP         <- paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June
 ANOPHELES_FP          <- paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
 QPCR_FP               <- paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
 DATA_DICT_FP          <- paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
-CLEANED_ALLSPECIES_FP <- paste0(wd, "Data/Data Sets/cleaned_allspecies_data.csv")
-CLEANED_ANOPHELES_FP  <- paste0(wd, "Data/Data Sets/cleaned_anopheles_data.csv")
-CLEANED_QPCR_FP       <- paste0(wd, "Data/Data Sets/cleaned_qpcr_data.csv")
 CLEANED_FP            <- paste0(wd, "Data/Data Sets/cleaned_data.Rdata")
 LOG_FP                <- paste0(wd, "Code/spat21_data_cleaning_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
@@ -82,7 +79,7 @@ allspecies_data %<>%
               "anoph.unfed","anoph.bloodfed","anoph.halfgravid","anoph.gravid","anoph.undetermined","anoph.total","num.male.anoph",
               "culex.unfed","culex.bloodfed","culex.halfgravid","culex.gravid","culex.undetermined","culex.total","num.male.culex"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
-  mutate(collection.time = as.logical(collection.time))
+  mutate_at(c("collection.time"), as.logical)
 write.log("Renamed columns")
 
 # Reformat anopheles_data columns from wide to long.
@@ -111,7 +108,7 @@ anopheles_data %<>%
               "abdominal.status","species.type","specify.species","form.checked.by","form.entered.by","complete"), factor) %>%
   mutate_at(c("repeat.instance","total.number.of.mosquitos.in.the.household"), as.integer) %>%
   mutate_at(c("collection.date","form.checked.date","form.entered.date"), mdy) %>%
-  mutate(collection.time = as.logical(collection.time))
+  mutate_at(c("collection.time"), as.logical)
 write.log("Reformatted data from wide to long")
 write.log("anopheles_data dims:", paste(ncol(anopheles_data), "vars"), paste(nrow(anopheles_data), "obs"))
 # Standardize sample ID format.
@@ -155,12 +152,6 @@ write.log()
 
 
 #### -------- export cleaned data ----------------- ####
-
-# Export cleaned data as CSV files.
-write_csv(allspecies_data, CLEANED_ALLSPECIES_FP)
-write_csv(anopheles_data, CLEANED_ANOPHELES_FP)
-write_csv(qpcr_data, CLEANED_QPCR_FP)
-# Export cleaned data as a single Rdata file.
 save(allspecies_data, anopheles_data, qpcr_data, file=CLEANED_FP)
 
 
