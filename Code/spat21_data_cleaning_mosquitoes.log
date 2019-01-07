@@ -24,7 +24,11 @@ anopheles_data dims:
 21 vars
 1495 obs
 
+Standardized sample ID spacing
+
 # ------ CLEAN QPCR DATA ------ #
+
+Standardized sample ID spacing
 
 Zero CT is defined as CT<0.000001
 All zero CTs marked as missing

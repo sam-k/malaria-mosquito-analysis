@@ -114,6 +114,11 @@ anopheles_data %<>%
   mutate(collection.time = as.logical(collection.time))
 write.log("Reformatted data from wide to long")
 write.log("anopheles_data dims:", paste(ncol(anopheles_data), "vars"), paste(nrow(anopheles_data), "obs"))
+# Standardize sample ID format.
+anopheles_data %<>%
+  mutate_at(c("sample.id.head","sample.id.head"),    function(x) { gsub("\\s?A\\s?", " A", x) }) %>%
+  mutate_at(c("sample.id.head","sample.id.abdomen"), function(x) { gsub("\\s?H\\s?", " H", x) })
+write.log("Standardized sample ID spacing")
 
 # Reformat qpcr_data columns.
 write.log("# ------ CLEAN QPCR DATA ------ #")
@@ -122,6 +127,11 @@ qpcr_data %<>%
   mutate_at(c("Sample.Name","Experiment.Name"), factor) %>%
   mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Std5a","pfr364Std5b","pfr364Std6a","pfr364Std6b"), as.numeric)
 qpcr_data[is.na(qpcr_data)] <- NA  # correct NaNs to NAs
+# Standardize sample ID format.
+qpcr_data %<>%
+  mutate(Sample.Name=gsub("\\s?A\\s?", " A", Sample.Name)) %>%
+  mutate(Sample.Name=gsub("\\s?H\\s?", " H", Sample.Name))
+write.log("Standardized sample ID spacing")
 # Process qPCR CT values.
 qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
