@@ -67,7 +67,7 @@ write.log("Merged anopheles descriptive data with wide qPCR data")
 unmerged_anoph_data <- anopheles_data[-which(anopheles_data$sample.id %in% merged_data$sample.id), ]
 write.log("All descriptive entries were present in qPCR data and merged correctly")
 unmerged_qpcr_data  <- qpcr_groupeddata[-which(qpcr_groupeddata$sample.id %in% merged_data$sample.id), ]
-write.log("qPCR entries K04 00004, K14 00027, M16 00035, S02 00033, S09 00003 were absent from descriptive data and did not merge")
+write.log(paste("qPCR entries", paste(unmerged_qpcr_data$sample.id, collapse=", "), "were absent from descriptive data and did not merge"))
 
 #### -------- export merged data ----------------- ####
 write.csv(merged_data, file=MERGED_CSV_FP, row.names=FALSE)
