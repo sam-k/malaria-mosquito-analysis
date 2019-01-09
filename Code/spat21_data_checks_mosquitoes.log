@@ -1,8 +1,32 @@
 # ------ VALIDATE ANOPH. DESCRIPTIVE DATA ------ #
 
-Extracted sample IDs
-
 All village names match
+
+HH ID	Sample ID H	Sample ID A
+K02	K07 H00010	K07 A00010
+K03	K05 H00013	K05 A00013
+K04	K05 H00035	K05 A00035
+M07	M05 H00023	M05 A00023
+M13	M15 H00016	M15 A00016
+M13	M16 H00033	M16 A00033
+M13	M16 H00034	M16 A00034
+M13	M16 H00036	M16 A00036
+M14	M12 H00002	M12 A00002
+M14	M12 H00003	M12 A00003
+M14	M12 H00004	M12 A00004
+M14	M12 H00005	M12 A00005
+M16	M05 H00040	M05 A00040
+S04	S02 H00005	S02 A00005
+S04	S02 H00006	S02 A00006
+S04	S02 H00007	S02 A00007
+S04	S02 H00008	S02 A00008
+S05	S06 H00015	S06 A00015
+S06	S05 H00014	S05 A00014
+S08	S04 H00001	S04 A00001
+S08	S12 H00005	S12 A00005
+S12	S08 H00004	S08 A00004
+
+Household IDs for K05 00013, K05 00035, K07 00010, M05 00023, M05 00040, M12 00002, M12 00003, M12 00004, M12 00005, M15 00016, M16 00033, M16 00034, M16 00036, S02 00005, S02 00006, S02 00007, S02 00008, S04 00001, S05 00014, S06 00015, S08 00004, S12 00005 did not match sample IDs and were overridden
 
 	H	A
 K	404	404
@@ -10,8 +34,16 @@ M	859	859
 S	232	231
 
 S02 A00001 is missing (as noted in comment)
-
 K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing
+
+Sample ID H	Sample ID A
+K05 H00008	K05 A00005
+M09 H00097	M09 A0097
+
+K05 H00008 and K05 A00005 are grouped together in the same entry
+M09 A0097 appeared to be formatted incorrectly and was corrected
+
+Extracted sample IDs
 
 Sample ID	Abd Status	Species Type
 K01 00026	An. gambiae	Gravid
@@ -32,12 +64,11 @@ M14 00018	An. gambiae	Blood Fed
 M14 00031	An. gambiae	Unfed
 
 Abd statuses and species for K01 00026, M07 00011, M07 00031, M07 00047, M07 00062, M07 00092, M07 00109, M07 00128, M07 00185, M09 00018, M09 00038, M09 00103, M14 00018, M14 00031 appeared swapped and were corrected
-
 Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
 
 # ------ VALIDATE QPCR DATA ------ #
 
 Extracted sample IDs and heads/abdomens
 
-No parasitemia for M06 A0026, considered missing
+No parasitemia for M06 A00026, considered missing
 
