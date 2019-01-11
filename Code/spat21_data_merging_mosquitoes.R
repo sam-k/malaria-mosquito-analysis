@@ -55,6 +55,11 @@ for(i in 1:nrow(qpcr_data)) {
 }
 qpcr_groupeddata %<>% filter(!is.na(sample.id))  # trim empty rows
 write.log("Converted qPCR data to wide format by sample ID")
+# Combine head/abdomen data for Hb/Pf statuses.
+qpcr_groupeddata$Has.Hb <- qpcr_groupeddata$H.Has.Hb | qpcr_groupeddata$A.Has.Hb
+qpcr_groupeddata$Has.Hb[is.na(qpcr_groupeddata$Has.Hb)] <- FALSE  # NAs should be false
+qpcr_groupeddata$Has.Pf <- qpcr_groupeddata$H.Has.Pf | qpcr_groupeddata$A.Has.Pf
+qpcr_groupeddata$Has.Pf[is.na(qpcr_groupeddata$Has.Pf)] <- FALSE  # NAs should be false
 
 # Merge anopheles_data with qpcr_data.
 merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id")
@@ -68,6 +73,17 @@ unmerged_anoph_data <- anopheles_data[-which(anopheles_data$sample.id %in% merge
 write.log("All descriptive entries were present in qPCR data and merged correctly")
 unmerged_qpcr_data  <- qpcr_groupeddata[-which(qpcr_groupeddata$sample.id %in% merged_data$sample.id), ]
 write.log(paste("qPCR entries", paste(unmerged_qpcr_data$sample.id, collapse=", "), "were absent from descriptive data and did not merge"))
+
+
+#### -------- tabulate merged data ----------------- ####
+
+tab_village_anoph <- rbind(table(merged_data$abdominal.status, merged_data$village),
+                           table(merged_data$species.type, merged_data$village)) %>% cbind(Total=rowSums(.))
+
+# tab_village_allsp <- 
+# 
+# tab_abd_allsp   <- 
+
 
 #### -------- export merged data ----------------- ####
 write.csv(merged_data, file=MERGED_CSV_FP, row.names=FALSE)

@@ -34,56 +34,77 @@ load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
 
 write.log("# ------ VALIDATE ANOPH. DESCRIPTIVE DATA ------ #")
 
-# Check if village names are consistent.
-discr_an_village <- anopheles_data %>%
-  select(household.id, village, sample.id.head, sample.id.abdomen) %>%
-  filter((substr(household.id,1,1)!=substr(sample.id.head,1,1)) & (substr(household.id,1,1)!=substr(sample.id.abdomen,1,1)) &
-         (substr(household.id,1,1)!=substr(village,1,1))) %>%
-  arrange(household.id, sample.id.head)
-write.log("All village names match")
+# Check if household/sample IDs follow the correct format (X## X#####).
+discr_an_hhformat <- anopheles_data %>%
+  select(household.id) %>%
+  filter(not(grepl("^[KMS]\\d{2}$", household.id))) %>%
+  arrange(household.id)
+write.log("All household IDs are formatted correctly")
+discr_an_idformat <- anopheles_data %>%
+  select(sample.id.head, sample.id.abdomen) %>%
+  filter(not(grepl("^[KMS]\\d{2}\\sH\\d{5}$", sample.id.head) & grepl("^[KMS]\\d{2}\\sA\\d{5}$", sample.id.abdomen))) %>%
+  arrange(sample.id.head, sample.id.abdomen)
+write.table(discr_an_idformat, row.names=FALSE, col.names=c("Sample ID H","Sample ID A"),
+            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+anopheles_data$sample.id.head[anopheles_data$sample.id.head=="K1 H00027"] <- "K14 H00027"
+anopheles_data$sample.id.head[anopheles_data$sample.id.head=="M05 A00002"] <- "M05 H00002"
+anopheles_data$sample.id.head[anopheles_data$sample.id.head=="M06 A00016"] <- "M06 H00016"
+anopheles_data$sample.id.head[anopheles_data$sample.id.head=="S06 A00012"] <- "S06 H00012"
+anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="M09 A0097"]  <- "M09 A00097"
+anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="M14 H00067"] <- "M14 A00067"
+anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="S06 H00012"] <- "S06 A00012"
+write.log("M05 00002, M06 00016, M09 00097, M14 00067, S06 00012 had incorrect head/abd designations and were corrected",
+          "M09 A00097 was written as M09 A0097 and was corrected",
+          "K14 H00027 was written as K1 H00027 and was corrected",
+          "S02 A00001 is missing (as noted in comment)",
+          "K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing")
 
-# Check if household names are consistent.
-discr_an_hh <- anopheles_data %>%
+# Check if sample IDs are unique and consistent with each other.
+discr_an_idid <- anopheles_data %>%
+  select(sample.id.head, sample.id.abdomen) %>%
+  filter((gsub("[AH]","",sample.id.head) != gsub("[AH]","",sample.id.abdomen))
+       | duplicated(sample.id.head)    | duplicated(sample.id.head, fromLast=TRUE)
+       | duplicated(sample.id.abdomen) | duplicated(sample.id.abdomen, fromLast=TRUE)) %>%
+  arrange(sample.id.head, sample.id.abdomen)
+write.table(discr_an_idid, row.names=FALSE, col.names=c("Sample ID H","Sample ID A"),
+            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+anopheles_data$sample.id.abdomen[anopheles_data$sample.id.head=="K05 H00008"] <- "K05 A00008"
+anopheles_data <- anopheles_data[-which(duplicated(anopheles_data$sample.id.head, fromLast=TRUE)
+                                      | duplicated(anopheles_data$sample.id.abdomen, fromLast=TRUE)), ]
+write.log("K05 A00008 was written as K05 A00005 and was corrected",
+          "Duplicate entries of M13 00035, M03 00021 were removed")
+
+# Extract sample IDs.
+anopheles_data$sample.id <- gsub("\\s*[AH]\\s*", " ", anopheles_data$sample.id.head)
+anopheles_data$sample.id[is.na(anopheles_data$sample.id.head)] <-
+  gsub("\\s*[AH]\\s*", " ", anopheles_data$sample.id.abdomen[is.na(anopheles_data$sample.id.head)])  # in case sample ID H is NA
+write.log("Extracted sample IDs")
+
+# Check if village names are consistent with household/sample IDs.
+discr_an_villageid <- anopheles_data %>%
+  select(household.id, village, sample.id) %>%
+  filter((substr(village,1,1)!=substr(household.id,1,1)) & (substr(village,1,1)!=substr(sample.id,1,1))) %>%
+  arrange(household.id, sample.id, village)
+write.table(discr_an_villageid, row.names=FALSE, col.names=c("HH","Village","Sample ID"),
+            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+temp_village_ids <- list(K="Kinesamo", M="Maruti", S="Sitabicha")
+anopheles_data$village <- temp_village_ids[substr(anopheles_data$household.id, 1, 1)]
+write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were corrected"))
+
+# Check if household names are consistent with sample IDs.
+discr_an_hhid <- anopheles_data %>%
   select(household.id, sample.id.head, sample.id.abdomen) %>%
   filter((substr(household.id,2,3)!=substr(sample.id.head,2,3)) & (substr(household.id,2,3)!=substr(sample.id.abdomen,2,3))) %>%
   arrange(household.id, sample.id.head)
-write.table(discr_an_hh, row.names=FALSE, col.names=c("HH ID","Sample ID H","Sample ID A"),
+write.table(discr_an_hhid, row.names=FALSE, col.names=c("HH","Sample ID H","Sample ID A"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-temp_h_ids <- sort(discr_an_hh$sample.id.head)
+temp_h_ids <- sort(discr_an_hhid$sample.id.head)
 anopheles_data$household.id <- substr(anopheles_data$sample.id.head, 1, 3)
-write.log(paste("Household IDs for", paste(gsub("H","",temp_h_ids), collapse=", "), "did not match sample IDs and were overridden"))
-
-# Check if heads/abdomens are missing.
-anoph_counts <- anopheles_data %>%
-  select(village, sample.id.head, sample.id.abdomen) %>%
-  group_by(village) %>%
-  summarize(H=sum(!is.na(sample.id.head)), A=sum(!is.na(sample.id.abdomen))) %>%
-  as.data.frame()
-rownames(anoph_counts) <- substr(anoph_counts$village, 1, 1)
-anoph_counts$village <- NULL
-write.table(anoph_counts, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
-write.log()
-write.log("S02 A00001 is missing (as noted in comment)",
-          "K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing")
-
-# Check if last five numbers of sample IDs are consistent.
-discr_an_id <- anopheles_data %>%
-  select(sample.id.head, sample.id.abdomen) %>%
-  filter(substr(sample.id.head,6,10)!=substr(sample.id.abdomen,6,10)) %>%
-  arrange(sample.id.head)
-write.table(discr_an_id, row.names=FALSE, col.names=c("Sample ID H","Sample ID A"),
-            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
-write.log()
-anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="M09 A0097"] <- "M09 A00097"
-write.log("K05 H00008 and K05 A00005 are grouped together in the same entry",
-          "M09 A0097 appeared to be formatted incorrectly and was corrected")
-
-# Extracted sample IDs.
-anopheles_data$sample.id <- gsub("\\s?[AH]\\s?", " ", anopheles_data$sample.id.head)
-anopheles_data$sample.id[is.na(anopheles_data$sample.id.head)] <-
-  gsub("\\s?[AH]\\s?", " ", anopheles_data$sample.id.abdomen[is.na(anopheles_data$sample.id.head)])  # in case sample H ID is NA
-write.log("Extracted sample IDs")
+write.log(paste("Household IDs for", nrow(discr_an_hhid), "samples did not match sample IDs and were overridden"))
 
 # Check if abdominal statuses and species types are correct.
 temp_discr_an_status <- anopheles_data %>%
@@ -114,7 +135,8 @@ temp_species <- anopheles_data$species.type[which(anopheles_data$sample.id %in% 
 anopheles_data$species.type[anopheles_data$sample.id %in% temp_ids]     <- temp_status
 anopheles_data$abdominal.status[anopheles_data$sample.id %in% temp_ids] <- temp_species
 anopheles_data$abdominal.status[is.na(anopheles_data$abdominal.status)] <- "Undetermined"
-write.log(paste("Abd statuses and species for", paste(temp_ids, collapse=", "), "appeared swapped and were corrected"),
+anopheles_data %<>% droplevels  # remove empty levels
+write.log(paste("Abd statuses and species for", length(temp_ids), "samples appeared swapped and were corrected"),
           "Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined")
 
 

@@ -1,8 +1,47 @@
 # ------ VALIDATE ANOPH. DESCRIPTIVE DATA ------ #
 
-All village names match
+All household IDs are formatted correctly
 
-HH ID	Sample ID H	Sample ID A
+Sample ID H	Sample ID A
+K1 H00027	K14 A00027
+M05 A00002	M05 A00002
+M06 A00016	M06 A00016
+M09 H00097	M09 A0097
+M14 H00067	M14 H00067
+S02 H00001	NA
+S06 A00012	S06 H00012
+
+M05 00002, M06 00016, M09 00097, M14 00067, S06 00012 had incorrect head/abd designations and were corrected
+M09 A00097 was written as M09 A0097 and was corrected
+K14 H00027 was written as K1 H00027 and was corrected
+S02 A00001 is missing (as noted in comment)
+K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing
+
+Sample ID H	Sample ID A
+K05 H00005	K05 A00005
+K05 H00008	K05 A00005
+M03 H00021	M03 A00021
+M03 H00021	M03 A00021
+M13 H00035	M13 A00035
+M13 H00035	M13 A00035
+
+K05 A00008 was written as K05 A00005 and was corrected
+Duplicate entries of M13 00035, M03 00021 were removed
+
+Extracted sample IDs
+
+HH	Village	Sample ID
+K07	Sitabicha	K07 00047
+K07	Sitabicha	K07 00048
+K07	Sitabicha	K07 00049
+M04	Kinesamo	M04 00015
+S05	Maruti	S05 00011
+S08	Kinesamo	S08 00009
+S08	Kinesamo	S08 00010
+
+Village names for 7 samples did not match household/sample IDs and were corrected
+
+HH	Sample ID H	Sample ID A
 K02	K07 H00010	K07 A00010
 K03	K05 H00013	K05 A00013
 K04	K05 H00035	K05 A00035
@@ -26,24 +65,7 @@ S08	S04 H00001	S04 A00001
 S08	S12 H00005	S12 A00005
 S12	S08 H00004	S08 A00004
 
-Household IDs for K05 00013, K05 00035, K07 00010, M05 00023, M05 00040, M12 00002, M12 00003, M12 00004, M12 00005, M15 00016, M16 00033, M16 00034, M16 00036, S02 00005, S02 00006, S02 00007, S02 00008, S04 00001, S05 00014, S06 00015, S08 00004, S12 00005 did not match sample IDs and were overridden
-
-	H	A
-K	404	404
-M	859	859
-S	232	231
-
-S02 A00001 is missing (as noted in comment)
-K05 A00034, M01 A00058, S07 A00008 are present in data, but commented as missing
-
-Sample ID H	Sample ID A
-K05 H00008	K05 A00005
-M09 H00097	M09 A0097
-
-K05 H00008 and K05 A00005 are grouped together in the same entry
-M09 A0097 appeared to be formatted incorrectly and was corrected
-
-Extracted sample IDs
+Household IDs for 22 samples did not match sample IDs and were overridden
 
 Sample ID	Abd Status	Species Type
 K01 00026	An. gambiae	Gravid
@@ -63,7 +85,7 @@ M09 00103	An. gambiae	Gravid
 M14 00018	An. gambiae	Blood Fed
 M14 00031	An. gambiae	Unfed
 
-Abd statuses and species for K01 00026, M07 00011, M07 00031, M07 00047, M07 00062, M07 00092, M07 00109, M07 00128, M07 00185, M09 00018, M09 00038, M09 00103, M14 00018, M14 00031 appeared swapped and were corrected
+Abd statuses and species for 14 samples appeared swapped and were corrected
 Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
 
 # ------ VALIDATE QPCR DATA ------ #

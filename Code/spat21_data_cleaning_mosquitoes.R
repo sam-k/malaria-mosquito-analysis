@@ -113,8 +113,8 @@ write.log("Reformatted data from wide to long")
 write.log("anopheles_data dims:", paste(ncol(anopheles_data), "vars"), paste(nrow(anopheles_data), "obs"))
 # Standardize sample ID format.
 anopheles_data %<>%
-  mutate_at(c("sample.id.head","sample.id.abdomen"), function(x) { gsub("\\s?A\\s?", " A", x) }) %>%
-  mutate_at(c("sample.id.head","sample.id.abdomen"), function(x) { gsub("\\s?H\\s?", " H", x) })
+  mutate_at(c("sample.id.head","sample.id.abdomen"), function(x) { gsub("\\s*A\\s*", " A", x) }) %>%
+  mutate_at(c("sample.id.head","sample.id.abdomen"), function(x) { gsub("\\s*H\\s*", " H", x) })
 write.log("Standardized sample ID spacing")
 
 # Reformat qpcr_data columns.
