@@ -6,5 +6,5 @@ Merged anopheles descriptive data with wide qPCR data
 
 All descriptive entries were present in qPCR data and merged correctly
 
-qPCR entries K04 00004, K14 00027, M16 00035, S02 00033, S09 00003 were absent from descriptive data and did not merge
+qPCR entries K04 00004, M16 00035, S02 00033, S09 00003 were absent from descriptive data and did not merge
 

@@ -5,7 +5,7 @@
 #            K. Sumner, S. Kim              #
 # ----------------------------------------- #
 
-#### --------- load packages ----------------- ####
+#### ------------------ load packages ------------------ ####
 library(readr)
 library(dplyr)
 library(tidyr)
@@ -13,9 +13,9 @@ library(lubridate)
 library(magrittr)
 
 
-#### --------- set up environment ----------------- ####
+#### ---------------- set up environment --------------- ####
 wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-VALIDATED_FP  <- paste0(wd, "Data/Data Sets/validated_data.Rdata")
+CLEANED_FP    <- paste0(wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
 MERGED_CSV_FP <- paste0(wd, "Data/Data Sets/merged_mosquito_data.csv")
 MERGED_RDS_FP <- paste0(wd, "Data/Data Sets/merged_mosquito_data.rds")
 LOG_FP        <- paste0(wd, "Code/spat21_data_merging_mosquitoes.log")
@@ -28,11 +28,11 @@ write.log <- function(...) {
 }
 
 
-#### --------- read in mosquito data ----------------- ####
-load(VALIDATED_FP)  # allspecies_data, anopheles_data, qpcr_data
+#### -------------- read in mosquito data -------------- ####
+load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
 
 
-#### ------------- merge mosquito data sets ---------------- ####
+#### ------------- merge mosquito data sets ------------ ####
 
 write.log("# ------ MERGE MOSQUITO DATA ------ #")
 
@@ -66,7 +66,7 @@ merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id")
 write.log("Merged anopheles descriptive data with wide qPCR data")
 
 
-#### ------------- validate merged data ---------------- ####
+#### -------------- validate merged data --------------- ####
 
 # Check if any entries were not merged.
 unmerged_anoph_data <- anopheles_data[-which(anopheles_data$sample.id %in% merged_data$sample.id), ]
@@ -75,7 +75,7 @@ unmerged_qpcr_data  <- qpcr_groupeddata[-which(qpcr_groupeddata$sample.id %in% m
 write.log(paste("qPCR entries", paste(unmerged_qpcr_data$sample.id, collapse=", "), "were absent from descriptive data and did not merge"))
 
 
-#### -------- tabulate merged data ----------------- ####
+#### -------------- tabulate merged data --------------- ####
 
 tab_village_anoph <- rbind(table(merged_data$abdominal.status, merged_data$village),
                            table(merged_data$species.type, merged_data$village)) %>% cbind(Total=rowSums(.))
@@ -85,10 +85,10 @@ tab_village_anoph <- rbind(table(merged_data$abdominal.status, merged_data$villa
 # tab_abd_allsp   <- 
 
 
-#### -------- export merged data ----------------- ####
+#### ---------------- export merged data --------------- ####
 write.csv(merged_data, file=MERGED_CSV_FP, row.names=FALSE)
 saveRDS(merged_data, file=MERGED_RDS_FP)
 
 
-#### -------- clean up environment ----------------- ####
+#### --------------- clean up environment -------------- ####
 rm(i, list=ls(pattern="^temp_"))

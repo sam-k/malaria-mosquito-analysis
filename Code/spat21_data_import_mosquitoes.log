@@ -1,0 +1,43 @@
+# ------ IMPORT RAW DATA ------ #
+
+allspecies_data dims:
+26 vars
+2091 obs
+
+anopheles_widedata dims:
+111 vars (10 + 16*6 + 5)
+669 obs (or more)
+
+qpcr_data dims:
+24 vars
+2914 obs
+
+# ------ REFORMAT ALL DESCRIPTIVE DATA ------ #
+
+Renamed columns
+
+# ------ REFORMAT ANOPH. DESCRIPTIVE DATA ------ #
+
+Reformatted data from wide to long
+
+anopheles_data dims:
+21 vars
+1495 obs
+
+Standardized sample ID spacing
+
+# ------ REFORMAT QPCR DATA ------ #
+
+Standardized sample ID spacing
+
+Zero CT is defined as CT<0.000001
+All zero CTs marked as missing
+
+Any positive CT marked as positive
+
+Everything else marked as negative
+
+	Neg	Pos	Missing
+Hb	1541	1372	1
+Pf	2580	333	1
+
