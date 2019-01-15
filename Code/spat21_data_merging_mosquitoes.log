@@ -4,7 +4,35 @@ Converted qPCR data to wide format by sample ID
 
 Merged anopheles descriptive data with wide qPCR data
 
-All descriptive entries were present in qPCR data and merged correctly
+# ------ VALIDATE MERGING ------ #
 
-qPCR entries K04 00004, M16 00035, S02 00033, S09 00003 were absent from descriptive data and did not merge
+Sample ID	Any Hb	H Hb	A Hb	Any Pf	H Pf	A Pf
+K01 00029	NA	NA	NA	NA	NA	NA
+K01 00030	NA	NA	NA	NA	NA	NA
+K01 00031	NA	NA	NA	NA	NA	NA
+K01 00032	NA	NA	NA	NA	NA	NA
+K01 00047	NA	NA	NA	NA	NA	NA
+K01 00048	NA	NA	NA	NA	NA	NA
+K01 00049	NA	NA	NA	NA	NA	NA
+M01 00001	NA	NA	NA	NA	NA	NA
+M01 00002	NA	NA	NA	NA	NA	NA
+M01 00003	NA	NA	NA	NA	NA	NA
+M01 00004	NA	NA	NA	NA	NA	NA
+M01 00005	NA	NA	NA	NA	NA	NA
+M01 00006	NA	NA	NA	NA	NA	NA
+M03 00007	NA	NA	NA	NA	NA	NA
+M09 00042	NA	NA	NA	NA	NA	NA
+M13 00026	NA	NA	NA	NA	NA	NA
+M13 00027	NA	NA	NA	NA	NA	NA
+
+If any.has.XX is NA, that entry was not present in the anopheles descriptive data
+From the anopheles descriptive dataset, 17 entries did not merge
+
+Sample ID	Any Hb	H Hb	A Hb	Any Pf	H Pf	A Pf
+K04 00004	FALSE	NA	FALSE	FALSE	NA	FALSE
+M16 00035	TRUE	TRUE	TRUE	FALSE	FALSE	FALSE
+S02 00033	TRUE	TRUE	NA	FALSE	FALSE	NA
+S09 00003	TRUE	NA	TRUE	FALSE	NA	FALSE
+
+From the qPCR dataset, 4 entries were absent in the descriptive data and did not merge
 
