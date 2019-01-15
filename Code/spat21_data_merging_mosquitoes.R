@@ -103,29 +103,17 @@ write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were abs
 
 #### -------------- tabulate merged data --------------- ####
 
-.tab_an_counts <- table(merged_data$village)
-.tab_an_abd    <- table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
-                        merged_data$village)
-.tab_an_spp    <- table(merged_data$species.type, merged_data$village) %>%
+.tab_v_counts <- table(merged_data$village)
+.tab_v_abd    <- table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
+                       merged_data$village) %>%
+  cbind(Total=rowSums(.))
+.tab_v_spp    <- table(merged_data$species.type, merged_data$village) %>%
   cbind(Total=rowSums(.)) %>%
   as.data.frame() %>%
-  rownames_to_column("Species Type") %>%
+  rownames_to_column("Species Type") %>%  # arrange removes rownames
   arrange(desc(Total)) %>%
   column_to_rownames("Species Type")
-# .tab_an_spp <- .tab_an_spp[order(Total)]
-# .tab_an_spp    <- merged_data %>%
-#   select(species.type, village) %>%
-#   group_by(species.type, village) %>%
-#   tally()
-# .tab_an_spp <- merged_data %>%
-#   select(species.type, village) %>%
-#   aggregate(by=list(merged_data$species.type), function(x) { sum(merged_data$village==x) })
-tab_village_anoph <-
-  rbind(table(merged_data$village),
-        table(merged_data$abdominal.status, merged_data$village),
-        table(merged_data$species.type, merged_data$village),
-        table(merged_data)) %>%
-  cbind(Total=rowSums(.))
+tab_village_anoph <- rbind(.tab_v_counts, .tab_v_abd, .tab_v_spp)
 
 # tab_village_allsp <- 
 # 

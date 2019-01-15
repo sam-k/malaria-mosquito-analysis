@@ -173,25 +173,25 @@ discr_an_sppcomment <- anopheles_data %>%
   select(sample.id, species.type, specify.species, comment) %>%
   filter((!is.na(species.type)    & !grepl("^An\\. ", species.type) & species.type!="Un-identified")
        | (!is.na(specify.species) & !grepl("^An\\. ", specify.species))
-       | (!is.na(comment)         & grepl("^An\\. ", comment))) %>%
+       | (!is.na(comment)         &  grepl("^An\\. ", comment))) %>%
   as.data.frame() %>%
   arrange(species.type, sample.id, specify.species, comment)
 write.table(discr_an_sppcomment, row.names=FALSE, col.names=c("Sample ID","Species Type","Specify Sp.","Comment"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 .ids <- c("M07 00013","M07 00094","M14 00020")
-anopheles_data$comment[anopheles_data$specify.species %in% .ids] <-
-  anopheles_data$specify.species[anopheles_data$comment %in% .ids]
-anopheles_data$specify.species[anopheles_data$comment %in% .ids] <- NA
+anopheles_data$comment[anopheles_data$sample.id %in% .ids] <-
+  as.character(anopheles_data$specify.species[anopheles_data$sample.id %in% .ids])
+anopheles_data$specify.species[which(anopheles_data$sample.id %in% .ids)] <- NA
 .ids <- c("K02 00028","M03 00025","M07 00135","M07 00136","M09 00086","M14 00038","M14 00059",
           "M15 00027","M15 00033","M15 00061","M15 00067","M16 00007","S01 00016")
-anopheles_data$species.type <- as.character(anopheles_data$species.type)
+anopheles_data %<>% mutate_at(c("species.type"), as.character)
 anopheles_data$species.type[which(anopheles_data$sample.id %in% .ids)] <-
-  anopheles_data$specify.species[which(anopheles_data$sample.id %in% .ids)]
+  as.character(anopheles_data$specify.species[anopheles_data$sample.id %in% .ids])
 anopheles_data$specify.species[which(anopheles_data$sample.id %in% .ids)] <- NA
-anopheles_data$species.type <- factor(anopheles_data$species.type)
+anopheles_data %<>% mutate_at(c("species.type"), factor)
 write.log("Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected",
-          paste("Duplicate species rows for", nrow(discr_an_sppcomment)-3, "samples were merged"))
+          paste("Duplicate species rows for", nrow(discr_an_sppcomment)-3, "samples were merged (An. pretoriensis)"))
 
 # Sort dataset and reorder columns.
 anopheles_data <- anopheles_data[c(names(anopheles_data)[1:10], "sample.id", names(anopheles_data)[11:21])] %>%
