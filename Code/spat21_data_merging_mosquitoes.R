@@ -64,8 +64,7 @@ qpcr_groupeddata$any.has.Pf <- qpcr_groupeddata$H.has.Pf | qpcr_groupeddata$A.ha
 qpcr_groupeddata$any.has.Pf[is.na(qpcr_groupeddata$any.has.Pf)] <- FALSE  # NAs should be false
 
 # Merge anopheles descriptive data with qPCR data.
-merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id")
-merged_data %<>%
+merged_data <- left_join(anopheles_data, qpcr_groupeddata, by="sample.id") %>%
   mutate_at(c("village"), as.character) %>%
   select(-c(repeat.instrument, repeat.instance, collection.date, collection.time, total.number.of.mosquitos.in.the.household,
             collection.done.by, samples.prepared.by, species.id.done.by, sample.id.head, sample.id.abdomen,
@@ -103,6 +102,7 @@ write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were abs
 
 #### -------------- tabulate merged data --------------- ####
 
+# Tabulate mosquito, abdominal status, and species counts per village.
 .tab_v_counts <- table(merged_data$village)
 .tab_v_abd    <- table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
                        merged_data$village) %>%
@@ -110,10 +110,29 @@ write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were abs
 .tab_v_spp    <- table(merged_data$species.type, merged_data$village) %>%
   cbind(Total=rowSums(.)) %>%
   as.data.frame() %>%
-  rownames_to_column("Species Type") %>%  # arrange removes rownames
+  rownames_to_column("Species.Type") %>%  # arrange removes rownames
   arrange(desc(Total)) %>%
-  column_to_rownames("Species Type")
+  column_to_rownames("Species.Type")
 tab_village_anoph <- rbind(.tab_v_counts, .tab_v_abd, .tab_v_spp)
+.unid_row <- which(rownames(tab_village_anoph)=="Un-identified")
+tab_village_anoph %<>% { .[c(rownames(tab_village_anoph)[1:(.unid_row-1)],
+                           rownames(tab_village_anoph)[(.unid_row+1):nrow(tab_village_anoph)], "Un-identified"), ] }
+row.names(tab_village_anoph)[1] <- "Total female anoph collected"
+tab_village_anoph[["Total female anoph collected", "Total"]] <-
+  rowSums(tab_village_anoph["Total female anoph collected", 1:(which(colnames(tab_village_anoph)=="Total")-1)])
+
+# Tabulate species counts per abdominal status.
+tab_abd_anoph <- table(anopheles_data$species.type, anopheles_data$abdominal.status) %>%
+  cbind(`Gravid or Half Gravid`=rowSums(.[, c("Gravid","Half Gravid")])) %>%
+  as.data.frame() %>%
+  select(`Blood Fed`, `Gravid or Half Gravid`) %>%
+  rownames_to_column("Species.Type") %>%
+  arrange(desc(`Blood Fed`)) %>%
+  column_to_rownames("Species.Type")
+.unid_row <- which(rownames(tab_abd_anoph)=="Un-identified")
+tab_abd_anoph <- tab_abd_anoph[c(rownames(tab_abd_anoph)[1:(.unid_row-1)],
+                                 rownames(tab_abd_anoph)[(.unid_row+1):nrow(tab_abd_anoph)], "Un-identified"), ]
+
 
 # tab_village_allsp <- 
 # 
