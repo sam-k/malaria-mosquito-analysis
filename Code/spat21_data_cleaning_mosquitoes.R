@@ -121,7 +121,9 @@ discr_an_villageid <- anopheles_data %>%
 write.table(discr_an_villageid, row.names=FALSE, col.names=c("HH","Village","Sample ID"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-anopheles_data$village <- village_dict[substr(anopheles_data$household.id, 1, 1)]
+for(.i in 1:nrow(anopheles_data)) {
+  anopheles_data$village[[.i]] <- village_dict[substr(anopheles_data$household.id[[.i]], 1, 1)]
+}
 write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were corrected"))
 
 # Check if household names are consistent with sample IDs.

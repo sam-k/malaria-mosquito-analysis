@@ -55,3 +55,77 @@ S08	Kinesamo	S08 00010
 
 Village names for 7 samples did not match household/sample IDs and were corrected
 
+HH	Sample ID H	Sample ID A
+K02	K07 H00010	K07 A00010
+K03	K05 H00013	K05 A00013
+K04	K05 H00035	K05 A00035
+M07	M05 H00023	M05 A00023
+M13	M15 H00016	M15 A00016
+M13	M16 H00033	M16 A00033
+M13	M16 H00034	M16 A00034
+M13	M16 H00036	M16 A00036
+M14	M12 H00002	M12 A00002
+M14	M12 H00003	M12 A00003
+M14	M12 H00004	M12 A00004
+M14	M12 H00005	M12 A00005
+M16	M05 H00040	M05 A00040
+S04	S02 H00005	S02 A00005
+S04	S02 H00006	S02 A00006
+S04	S02 H00007	S02 A00007
+S04	S02 H00008	S02 A00008
+S05	S06 H00015	S06 A00015
+S06	S05 H00014	S05 A00014
+S08	S04 H00001	S04 A00001
+S08	S12 H00005	S12 A00005
+S12	S08 H00004	S08 A00004
+
+Household IDs for 22 samples did not match sample IDs and were overridden
+
+Sample ID	Abd Status	Species Type
+K01 00026	An. gambiae	Gravid
+K05 00038	NA	Un-identified
+K14 00041	NA	Un-identified
+M07 00011	Un-identified	Blood Fed
+M07 00031	An. gambiae	Gravid
+M07 00047	An. funestus	Blood Fed
+M07 00062	An. gambiae	Half Gravid
+M07 00092	An. gambiae	Blood Fed
+M07 00109	An. gambiae	Half Gravid
+M07 00128	An. gambiae	Half Gravid
+M07 00185	An. gambiae	Unfed
+M09 00018	Un-identified	Half Gravid
+M09 00038	An. gambiae	Blood Fed
+M09 00103	An. gambiae	Gravid
+M14 00018	An. gambiae	Blood Fed
+M14 00031	An. gambiae	Unfed
+
+Abd statuses and species for 14 samples appeared swapped and were corrected
+Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
+
+Sample ID	Species Type	Specify Sp.	Comment
+K02 00028	Other, Specify	An. pretoriensis	NA
+M03 00025	Other, Specify	An. pretoriensis	NA
+M07 00135	Other, Specify	An. pretoriensis	NA
+M07 00136	Other, Specify	An. pretoriensis	NA
+M09 00086	Other, Specify	An. pretoriensis	NA
+M14 00038	Other, Specify	An. pretoriensis	NA
+M14 00059	Other, Specify	An. pretoriensis	NA
+M15 00027	Other, Specify	An. pretoriensis	NA
+M15 00033	Other, Specify	An. pretoriensis	NA
+M15 00061	Other, Specify	An. pretoriensis	NA
+M15 00067	Other, Specify	An. pretoriensis	NA
+M16 00007	Other, Specify	An. pretoriensis	NA
+S01 00016	Other, Specify	An. pretoriensis	NA
+M07 00013	Un-identified	No photo taken, the camera was unavailabe	NA
+M07 00094	Un-identified	Very pale	NA
+M14 00020	Un-identified	unclear sample	NA
+
+Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected
+Duplicate species rows for 13 samples were merged (An. pretoriensis)
+
+# ------ CLEAN QPCR DATA ------ #
+
+All sample IDs are formatted correctly
+
+Extracted sample IDs and heads/abdomens
+
