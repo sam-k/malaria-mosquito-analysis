@@ -1,3 +1,17 @@
+# ------ CLEAN ALL SPP. DESCRIPTIVE DATA ------ #
+
+All household IDs are formatted correctly
+
+HH	Village
+K07	Maruti
+K11	Maruti
+M06	Kinesamo
+M14	Kinesamo
+S01	Maruti
+S11	Maruti
+
+Village names for 6 samples did not match household/sample IDs and were corrected
+
 # ------ CLEAN ANOPH. DESCRIPTIVE DATA ------ #
 
 All household IDs are formatted correctly
@@ -88,9 +102,16 @@ M14 00031	An. gambiae	Unfed
 Abd statuses and species for 14 samples appeared swapped and were corrected
 Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
 
+Sample ID	Specify Sp.	Comment
+M07 00013	No photo taken, the camera was unavailabe	NA
+M07 00094	Very pale	NA
+M14 00020	unclear sample	NA
+
+Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected
+
 # ------ CLEAN QPCR DATA ------ #
 
-Extracted sample IDs and heads/abdomens
+All sample IDs are formatted correctly
 
-No parasitemia for M06 A00026, considered missing
+Extracted sample IDs and heads/abdomens
 

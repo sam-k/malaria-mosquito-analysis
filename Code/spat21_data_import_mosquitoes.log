@@ -12,7 +12,7 @@ qpcr_data dims:
 24 vars
 2914 obs
 
-# ------ REFORMAT ALL DESCRIPTIVE DATA ------ #
+# ------ REFORMAT ALL SPP. DESCRIPTIVE DATA ------ #
 
 Renamed columns
 
@@ -30,14 +30,15 @@ Standardized sample ID spacing
 
 Standardized sample ID spacing
 
-Zero CT is defined as CT<0.000001
-All zero CTs marked as missing
+Zero Ct is defined as Ct<0.000001
 
-Any positive CT marked as positive
-
+All zero Ct's marked as missing
+Any positive Ct marked as positive
 Everything else marked as negative
 
 	Neg	Pos	Missing
 Hb	1541	1372	1
 Pf	2580	333	1
+
+No parasitemia for M06 A00026, considered missing
 

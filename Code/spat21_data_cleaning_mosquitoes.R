@@ -24,10 +24,39 @@ write.log <- function(...) {
   }
   write("", file=LOG_FP, append=TRUE)
 }
+village_dict <- list(K="Kinesamo", M="Maruti", S="Sitabicha")  # codes for villages
 
 
 #### -------------- read in mosquito data -------------- ####
 load(IMPORTED_FP)  # allspecies_data, anopheles_data, qpcr_data
+
+
+#### -------------- clean all species data ------------- ####
+
+write.log("# ------ CLEAN ALL SPP. DESCRIPTIVE DATA ------ #")
+
+# Check if household IDs follow the correct format (X##).
+discr_sp_hhformat <- allspecies_data %>%
+  select(household.id) %>%
+  filter(not(grepl("^[KMS]\\d{2}$", household.id))) %>%
+  arrange(household.id)
+write.log("All household IDs are formatted correctly")
+
+# Check if village names are consistent with household IDs.
+discr_sp_villageid <- allspecies_data %>%
+  select(household.id, village) %>%
+  as.data.frame() %>%
+  mutate_at(c("village"), as.character) %>%
+  filter(village != village_dict[substr(household.id,1,1)]) %>%
+  arrange(household.id, village)
+write.table(discr_sp_villageid, row.names=FALSE, col.names=c("HH","Village"),
+            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+allspecies_data$village <- village_dict[substr(allspecies_data$household.id, 1, 1)]
+write.log(paste("Village names for", nrow(discr_sp_villageid), "samples did not match household/sample IDs and were corrected"))
+
+# Sort dataset.
+allspecies_data %<>% arrange(collection.date, household.id)
 
 
 #### -------------- clean descriptive data ------------- ####
@@ -85,13 +114,14 @@ write.log("Extracted sample IDs")
 # Check if village names are consistent with household/sample IDs.
 discr_an_villageid <- anopheles_data %>%
   select(household.id, village, sample.id) %>%
-  filter((substr(village,1,1)!=substr(household.id,1,1)) & (substr(village,1,1)!=substr(sample.id,1,1))) %>%
+  as.data.frame() %>%
+  mutate_at(c("village"), as.character) %>%
+  filter((village!=village_dict[substr(household.id,1,1)]) | (village!=village_dict[substr(sample.id,1,1)])) %>%
   arrange(household.id, sample.id, village)
 write.table(discr_an_villageid, row.names=FALSE, col.names=c("HH","Village","Sample ID"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-temp_village_ids <- list(K="Kinesamo", M="Maruti", S="Sitabicha")
-anopheles_data$village <- temp_village_ids[substr(anopheles_data$household.id, 1, 1)]
+anopheles_data$village <- village_dict[substr(anopheles_data$household.id, 1, 1)]
 write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were corrected"))
 
 # Check if household names are consistent with sample IDs.
@@ -115,7 +145,7 @@ temp_discr_an_status <- anopheles_data %>%
   replace(is.na(.), "NA")
 temp_discr_an_species <- anopheles_data %>%
   select(sample.id, species.type) %>%
-  filter(!grepl("An. ", species.type) & !(species.type %in% c("Other, Specify","Un-identified"))) %>%
+  filter(!grepl("^An\\. ", species.type) & !(species.type %in% c("Other, Specify","Un-identified"))) %>%
   as.data.frame() %>%
   mutate_at(c("species.type"), as.character) %>%
   replace(is.na(.), "NA")
@@ -139,19 +169,46 @@ anopheles_data %<>% droplevels  # remove empty levels
 write.log(paste("Abd statuses and species for", length(temp_ids), "samples appeared swapped and were corrected"),
           "Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined")
 
+# Check if specified species and comments are correct.
+discr_an_comment <- anopheles_data %>%
+  select(sample.id, specify.species, comment) %>%
+  filter((!is.na(specify.species) & !grepl("^An\\. ", specify.species)) | (!is.na(comment) & grepl("^An\\. ", comment))) %>%
+  as.data.frame() %>%
+  arrange(sample.id, specify.species, comment)
+write.table(discr_an_comment, row.names=FALSE, col.names=c("Sample ID","Specify Sp.","Comment"),
+            file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+for(temp_comment in discr_an_comment$specify.species) {
+  anopheles_data$comment[anopheles_data$specify.species==temp_comment] <- temp_comment
+  anopheles_data$specify.species[anopheles_data$comment==temp_comment] <- NA
+}
+write.log("Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected")
+
+# Sort dataset and reorder columns.
+anopheles_data <- anopheles_data[c(names(anopheles_data)[1:10], "sample.id", names(anopheles_data)[11:21])]
+anopheles_data %<>% arrange(sample.id)
+
 
 #### ----------------- clean qPCR data ----------------- ####
 
 write.log("# ------ CLEAN QPCR DATA ------ #")
 
-# Perform data checks for qpcr_data.
+# Check if sample IDs follow the correct format (X## X#####).
+discr_qp_hhformat <- qpcr_data %>%
+  select(Sample.Name) %>%
+  filter(not(grepl("^[KMS]\\d{2}\\s[AH]\\d{5}$", Sample.Name))) %>%
+  arrange(Sample.Name)
+write.log("All sample IDs are formatted correctly")
+
+# Extract sample IDs and head/abd statuses.
 qpcr_data$Sample.ID <- gsub("\\s?[AH]\\s?", " ", qpcr_data$Sample.Name)
 qpcr_data$Head.Abd  <- gsub("[^AH]", "", qpcr_data$Sample.Name)
+qpcr_data %<>% mutate(Head.Abd=factor(Head.Abd))
 write.log("Extracted sample IDs and heads/abdomens")
-qpcr_data %<>%
-  mutate(Head.Abd = factor(Head.Abd)) %>%
-  arrange(Sample.ID, Head.Abd)
-write.log("No parasitemia for M06 A00026, considered missing")
+
+# Sort dataset and reorder columns.
+qpcr_data <- qpcr_data[c("Sample.ID", "Head.Abd", names(qpcr_data)[1:26])]
+qpcr_data %<>% arrange(Sample.ID, Head.Abd)
 
 
 #### --------------- export cleaned data --------------- ####
@@ -159,4 +216,4 @@ save(allspecies_data, anopheles_data, qpcr_data, file=CLEANED_FP)
 
 
 #### --------------- clean up environment -------------- ####
-rm(list=ls(pattern="^temp_"))
+rm(village_dict, list=ls(pattern="^temp_"))
