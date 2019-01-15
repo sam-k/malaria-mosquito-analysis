@@ -24,8 +24,8 @@ LOG_FP        <- paste0(wd, "Code/spat21_data_import_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 zero <- 1e-6  # threshold for zero CT value
 write.log <- function(...) {
-  for(temp_output in list(...)) {
-    write(temp_output, file=LOG_FP, append=TRUE)
+  for(.output in list(...)) {
+    write(.output, file=LOG_FP, append=TRUE)
   }
   write("", file=LOG_FP, append=TRUE)
 }
@@ -94,14 +94,14 @@ names(anopheles_data) <- c("household.id","repeat.instrument","repeat.instance",
                            "collection.done.by","samples.prepared.by","species.id.done.by","total.number.of.mosquitos.in.the.household",
                            "sample.id.head","sample.id.abdomen","abdominal.status","species.type","specify.species","comment",
                            "form.checked.by","form.checked.date","form.entered.by","form.entered.date","complete")
-temp_count <- 1
-for(i in 1:nrow(anopheles_widedata)) {
-  header <- anopheles_widedata[i, 1:10]
-  footer <- anopheles_widedata[i, 107:111]
-  for(j in 1:16) {
-    if(anopheles_widedata[[i, 5+6*j]] != "") {  # first column of j-th "block"
-      anopheles_data[temp_count, ] <- c(header, anopheles_widedata[i, (5+6*j):(10+6*j)], footer)
-      temp_count <- temp_count + 1
+.count <- 1
+for(.i in 1:nrow(anopheles_widedata)) {
+  .header <- anopheles_widedata[.i, 1:10]
+  .footer <- anopheles_widedata[.i, 107:111]
+  for(.j in 1:16) {
+    if(anopheles_widedata[[.i, 5+6*.j]] != "") {  # first column of j-th "block"
+      anopheles_data[.count, ] <- c(.header, anopheles_widedata[.i, (5+6*.j):(10+6*.j)], .footer)
+      .count <- .count + 1
     }
   }
 }
@@ -171,7 +171,3 @@ write.log("No parasitemia for M06 A00026, considered missing")
 
 #### ------------ export reformatted data -------------- ####
 save(allspecies_data, anopheles_data, qpcr_data, file=IMPORTED_FP)
-
-
-#### ------------- clean up environment ---------------- ####
-rm(header, footer, i, j, list=ls(pattern="^temp_"))

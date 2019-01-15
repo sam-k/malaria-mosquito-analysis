@@ -102,12 +102,26 @@ M14 00031	An. gambiae	Unfed
 Abd statuses and species for 14 samples appeared swapped and were corrected
 Abd statuses for K05 00038, K14 00041 were missing and were corrected to Undetermined
 
-Sample ID	Specify Sp.	Comment
-M07 00013	No photo taken, the camera was unavailabe	NA
-M07 00094	Very pale	NA
-M14 00020	unclear sample	NA
+Sample ID	Species Type	Specify Sp.	Comment
+K02 00028	Other, Specify	An. pretoriensis	NA
+M03 00025	Other, Specify	An. pretoriensis	NA
+M07 00135	Other, Specify	An. pretoriensis	NA
+M07 00136	Other, Specify	An. pretoriensis	NA
+M09 00086	Other, Specify	An. pretoriensis	NA
+M14 00038	Other, Specify	An. pretoriensis	NA
+M14 00059	Other, Specify	An. pretoriensis	NA
+M15 00027	Other, Specify	An. pretoriensis	NA
+M15 00033	Other, Specify	An. pretoriensis	NA
+M15 00061	Other, Specify	An. pretoriensis	NA
+M15 00067	Other, Specify	An. pretoriensis	NA
+M16 00007	Other, Specify	An. pretoriensis	NA
+S01 00016	Other, Specify	An. pretoriensis	NA
+M07 00013	Un-identified	No photo taken, the camera was unavailabe	NA
+M07 00094	Un-identified	Very pale	NA
+M14 00020	Un-identified	unclear sample	NA
 
 Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected
+Duplicate species rows for 13 samples were merged
 
 # ------ CLEAN QPCR DATA ------ #
 
