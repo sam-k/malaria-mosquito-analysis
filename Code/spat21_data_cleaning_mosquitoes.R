@@ -134,7 +134,6 @@ discr_an_hhid <- anopheles_data %>%
 write.table(discr_an_hhid, row.names=FALSE, col.names=c("HH","Sample ID H","Sample ID A"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-.h_ids <- sort(discr_an_hhid$sample.id.head)
 anopheles_data$household.id <- substr(anopheles_data$sample.id.head, 1, 3)
 write.log(paste("Household IDs for", nrow(discr_an_hhid), "samples did not match sample IDs and were overridden"))
 
@@ -219,8 +218,7 @@ qpcr_data %<>% mutate(Head.Abd=factor(Head.Abd))
 write.log("Extracted sample IDs and heads/abdomens")
 
 # Sort dataset and reorder columns.
-qpcr_data <- qpcr_data[c("Sample.ID", "Head.Abd", names(qpcr_data)[1:26])]
-qpcr_data %<>% arrange(Sample.ID, Head.Abd)
+qpcr_data %<>% .[c("Sample.ID", "Head.Abd", names(qpcr_data)[1:26])] %>% arrange(Sample.ID, Head.Abd)
 
 
 #### --------------- export cleaned data --------------- ####
