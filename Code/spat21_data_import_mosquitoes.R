@@ -14,21 +14,21 @@ library(magrittr)
 
 
 #### ---------------- set up environment --------------- ####
-wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-ALLSPECIES_FP <- paste0(wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
-ANOPHELES_FP  <- paste0(wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-QPCR_FP       <- paste0(wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
-DATA_DICT_FP  <- paste0(wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
-IMPORTED_FP   <- paste0(wd, "Data/Data Sets/imported_mosquito_data.Rdata")
-LOG_FP        <- paste0(wd, "Code/spat21_data_import_mosquitoes.log")
+.wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
+ALLSPECIES_FP <- paste0(.wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
+ANOPHELES_FP  <- paste0(.wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
+QPCR_FP       <- paste0(.wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
+DATA_DICT_FP  <- paste0(.wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
+IMPORTED_FP   <- paste0(.wd, "Data/Data Sets/imported_mosquito_data.Rdata")
+LOG_FP        <- paste0(.wd, "Code/spat21_data_import_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
-zero <- 1e-6  # threshold for zero CT value
 write.log <- function(...) {
   for(.output in list(...)) {
     write(.output, file=LOG_FP, append=TRUE)
   }
   write("", file=LOG_FP, append=TRUE)
 }
+.zero <- 1e-6  # threshold for zero CT value
 
 
 #### ------------- read in mosquito data --------------- ####
@@ -44,8 +44,9 @@ anopheles_widedata <- read.csv(ANOPHELES_FP, stringsAsFactors=FALSE)
 qpcr_data          <- read.csv(QPCR_FP, stringsAsFactors=FALSE)
 
 # Clean column names.
-names(anopheles_widedata) <- tolower(gsub("..", ".", names(anopheles_widedata), fixed=TRUE))
-names(anopheles_widedata) <- tolower(gsub("\\.$", "", names(anopheles_widedata)))  # remove trailing periods
+names(anopheles_widedata) %<>%
+  { tolower(gsub("..",  ".", ., fixed=TRUE)) } %>%
+  { tolower(gsub("\\.$", "", .)) }  # remove trailing periods
 anopheles_widedata %<>% rename(form.entered.date = form.entered.on)  # consistent name
 
 # Look at summaries of all the data sets.
@@ -55,10 +56,10 @@ summary(qpcr_data)
 str(allspecies_data)
 str(anopheles_widedata)
 str(qpcr_data)
-write.log("allspecies_data dims:", paste(ncol(allspecies_data), "vars"), paste(nrow(allspecies_data), "obs"))
+write.log("allspecies_data dims:",    paste(ncol(allspecies_data), "vars"), paste(nrow(allspecies_data), "obs"))
 write.log("anopheles_widedata dims:", paste(ncol(anopheles_widedata), "vars (10 + 16*6 + 5)"),
                                       paste(nrow(anopheles_widedata), "obs (or more)"))
-write.log("qpcr_data dims:", paste(ncol(qpcr_data), "vars"), paste(nrow(qpcr_data), "obs"))
+write.log("qpcr_data dims:",          paste(ncol(qpcr_data), "vars"),       paste(nrow(qpcr_data), "obs"))
 
 # Output a CSV file of all the variable names.
 allnames <- data.frame(c(names(allspecies_data), names(anopheles_widedata), names(qpcr_data)))
@@ -146,24 +147,24 @@ write.log("Standardized sample ID spacing")
 # Process qPCR Ct values.
 qpcr_data$Has.Hb <- FALSE
 qpcr_data$Has.Pf <- FALSE
-qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<zero & qpcr_data$HbtubCT2<zero & qpcr_data$pfr364CT1<zero & qpcr_data$pfr364CT2<zero)] <- NA
+qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1<.zero & qpcr_data$HbtubCT2<.zero & qpcr_data$pfr364CT1<.zero & qpcr_data$pfr364CT2<.zero)] <- NA
 qpcr_data$Has.Pf[which(is.na(qpcr_data$Has.Hb))] <- NA
 write.log("Zero Ct is defined as Ct<0.000001")
 qpcr_data %<>%
-  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Q1","pfr364Q2"), function(x) { ifelse(x<zero, NA, x) })
-qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>=zero  | qpcr_data$HbtubCT2>=zero)]  <- TRUE
-qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>=zero | qpcr_data$pfr364CT2>=zero)] <- TRUE
+  mutate_at(c("HbtubCT1","HbtubCT2","pfr364CT1","pfr364CT2","pfr364Q1","pfr364Q2"), function(x) { ifelse(x<.zero, NA, x) })
+qpcr_data$Has.Hb[which(qpcr_data$HbtubCT1>=.zero  | qpcr_data$HbtubCT2>=.zero)]  <- TRUE
+qpcr_data$Has.Pf[which(qpcr_data$pfr364CT1>=.zero | qpcr_data$pfr364CT2>=.zero)] <- TRUE
 write.log("All zero Ct's marked as missing",
           "Any positive Ct marked as positive",
           "Everything else marked as negative")
-qpcr_data <- qpcr_data[c(names(qpcr_data)[1:5], "Has.Hb", names(qpcr_data)[6:9], "Has.Pf", names(qpcr_data)[10:24])]
+qpcr_data %<>% .[c(names(.)[1:5], "Has.Hb", names(.)[6:9], "Has.Pf", names(.)[10:24])]
 
 # Tabulate qPCR Ct counts.
 qpcr_counts <- rbind(table(qpcr_data$Has.Hb, useNA="always"), table(qpcr_data$Has.Pf, useNA="always"))
 rownames(qpcr_counts) <- c("Hb","Pf")
 colnames(qpcr_counts) <- c("Neg","Pos","Missing")
-qpcr_counts[["Pf","Pos"]] <- qpcr_counts[["Pf","Pos"]] - 1  # no parasitemia for M06 A00026
-qpcr_counts[["Pf","Neg"]] <- qpcr_counts[["Pf","Neg"]] + 1  # no parasitemia for M06 A00026
+qpcr_counts[["Pf","Pos"]] %<>% { . - 1 }  # no parasitemia for M06 A00026
+qpcr_counts[["Pf","Neg"]] %<>% { . + 1 }  # no parasitemia for M06 A00026
 write.table(qpcr_counts, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 write.log("No parasitemia for M06 A00026, considered missing")

@@ -13,10 +13,10 @@ library(lubridate)
 library(magrittr)
 
 #### ---------------- set up environment --------------- ####
-wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-IMPORTED_FP <- paste0(wd, "Data/Data Sets/imported_mosquito_data.Rdata")
-CLEANED_FP  <- paste0(wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
-LOG_FP      <- paste0(wd, "Code/spat21_data_cleaning_mosquitoes.log")
+.wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
+IMPORTED_FP <- paste0(.wd, "Data/Data Sets/imported_mosquito_data.Rdata")
+CLEANED_FP  <- paste0(.wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
+LOG_FP      <- paste0(.wd, "Code/spat21_data_cleaning_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
   for(.output in list(...)) {
@@ -24,7 +24,7 @@ write.log <- function(...) {
   }
   write("", file=LOG_FP, append=TRUE)
 }
-village_dict <- list(K="Kinesamo", M="Maruti", S="Sitabicha")  # codes for villages
+.village_dict <- list(K="Kinesamo", M="Maruti", S="Sitabicha")  # codes for villages
 
 
 #### -------------- read in mosquito data -------------- ####
@@ -47,12 +47,12 @@ discr_sp_villageid <- allspecies_data %>%
   select(household.id, village) %>%
   as.data.frame() %>%
   mutate_at(c("village"), as.character) %>%
-  filter(village != village_dict[substr(household.id,1,1)]) %>%
+  filter(village != .village_dict[substr(household.id,1,1)]) %>%
   arrange(household.id, village)
 write.table(discr_sp_villageid, row.names=FALSE, col.names=c("HH","Village"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-allspecies_data$village <- village_dict[substr(allspecies_data$household.id, 1, 1)]
+allspecies_data$village <- .village_dict[substr(allspecies_data$household.id, 1, 1)]
 write.log(paste("Village names for", nrow(discr_sp_villageid), "samples did not match household/sample IDs and were corrected"))
 
 # Sort dataset.
@@ -76,13 +76,16 @@ discr_an_idformat <- anopheles_data %>%
 write.table(discr_an_idformat, row.names=FALSE, col.names=c("Sample ID H","Sample ID A"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-anopheles_data$sample.id.head[anopheles_data$sample.id.head=="K1 H00027"] <- "K14 H00027"
-anopheles_data$sample.id.head[anopheles_data$sample.id.head=="M05 A00002"] <- "M05 H00002"
-anopheles_data$sample.id.head[anopheles_data$sample.id.head=="M06 A00016"] <- "M06 H00016"
-anopheles_data$sample.id.head[anopheles_data$sample.id.head=="S06 A00012"] <- "S06 H00012"
-anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="M09 A0097"]  <- "M09 A00097"
-anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="M14 H00067"] <- "M14 A00067"
-anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen=="S06 H00012"] <- "S06 A00012"
+.h_incorrect_ids <- c( "K1 H00027","M05 A00002","M06 A00016","S06 A00012")
+.h_correct_ids   <- c("K14 H00027","M05 H00002","M06 H00016","S06 H00012")
+for(.i in 1:length(.h_incorrect_ids)) {
+  anopheles_data$sample.id.head[anopheles_data$sample.id.head==.h_incorrect_ids[[.i]]] <- .h_correct_ids[[.i]]
+}
+.a_incorrect_ids <- c( "M09 A0097","M14 H00067","S06 H00012")
+.a_correct_ids   <- c("M09 A00097","M14 A00067","S06 A00012")
+for(.i in 1:length(.a_incorrect_ids)) {
+  anopheles_data$sample.id.abdomen[anopheles_data$sample.id.abdomen==.a_incorrect_ids[[.i]]] <- .a_correct_ids[[.i]]
+}
 write.log("M05 00002, M06 00016, M09 00097, M14 00067, S06 00012 had incorrect head/abd designations and were corrected",
           "M09 A00097 was written as M09 A0097 and was corrected",
           "K14 H00027 was written as K1 H00027 and was corrected",
@@ -100,8 +103,8 @@ write.table(discr_an_idid, row.names=FALSE, col.names=c("Sample ID H","Sample ID
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 anopheles_data$sample.id.abdomen[anopheles_data$sample.id.head=="K05 H00008"] <- "K05 A00008"
-anopheles_data <- anopheles_data[-which(duplicated(anopheles_data$sample.id.head, fromLast=TRUE)
-                                      | duplicated(anopheles_data$sample.id.abdomen, fromLast=TRUE)), ]
+anopheles_data %<>% .[-which(duplicated(.$sample.id.head, fromLast=TRUE)
+                           | duplicated(.$sample.id.abdomen, fromLast=TRUE)), ]
 write.log("K05 A00008 was written as K05 A00005 and was corrected",
           "Duplicate entries of M13 00035, M03 00021 were removed")
 
@@ -116,13 +119,13 @@ discr_an_villageid <- anopheles_data %>%
   select(household.id, village, sample.id) %>%
   as.data.frame() %>%
   mutate_at(c("village"), as.character) %>%
-  filter((village!=village_dict[substr(household.id,1,1)]) | (village!=village_dict[substr(sample.id,1,1)])) %>%
+  filter((village!=.village_dict[substr(household.id,1,1)]) | (village!=.village_dict[substr(sample.id,1,1)])) %>%
   arrange(household.id, sample.id, village)
 write.table(discr_an_villageid, row.names=FALSE, col.names=c("HH","Village","Sample ID"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 for(.i in 1:nrow(anopheles_data)) {
-  anopheles_data$village[[.i]] <- village_dict[substr(anopheles_data$household.id[[.i]], 1, 1)]
+  anopheles_data$village[[.i]] <- .village_dict[substr(anopheles_data$household.id[[.i]], 1, 1)]
 }
 write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were corrected"))
 
@@ -180,22 +183,21 @@ discr_an_sppcomment <- anopheles_data %>%
 write.table(discr_an_sppcomment, row.names=FALSE, col.names=c("Sample ID","Species Type","Specify Sp.","Comment"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-.ids <- c("M07 00013","M07 00094","M14 00020")
-anopheles_data$comment[anopheles_data$sample.id %in% .ids] <-
-  as.character(anopheles_data$specify.species[anopheles_data$sample.id %in% .ids])
-anopheles_data$specify.species[which(anopheles_data$sample.id %in% .ids)] <- NA
-.ids <- c("K02 00028","M03 00025","M07 00135","M07 00136","M09 00086","M14 00038","M14 00059",
-          "M15 00027","M15 00033","M15 00061","M15 00067","M16 00007","S01 00016")
+.which_ids <- which(anopheles_data$sample.id %in% c("M07 00013","M07 00094","M14 00020"))
+anopheles_data$comment[.which_ids] <- as.character(anopheles_data$specify.species[.which_ids])
+anopheles_data$specify.species[.which_ids] <- NA
+.which_ids <- which(anopheles_data$sample.id %in% c("K02 00028","M03 00025","M07 00135","M07 00136","M09 00086","M14 00038","M14 00059",
+                                                    "M15 00027","M15 00033","M15 00061","M15 00067","M16 00007","S01 00016"))
 anopheles_data %<>% mutate_at(c("species.type"), as.character)
-anopheles_data$species.type[which(anopheles_data$sample.id %in% .ids)] <-
-  as.character(anopheles_data$specify.species[anopheles_data$sample.id %in% .ids])
-anopheles_data$specify.species[which(anopheles_data$sample.id %in% .ids)] <- NA
+anopheles_data$species.type[.which_ids] <- as.character(anopheles_data$specify.species[.which_ids])
+anopheles_data$specify.species[.which_ids] <- NA
 anopheles_data %<>% mutate_at(c("species.type"), factor)
 write.log("Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected",
           paste("Duplicate species rows for", nrow(discr_an_sppcomment)-3, "samples were merged (An. pretoriensis)"))
 
 # Sort dataset and reorder columns.
-anopheles_data <- anopheles_data[c(names(anopheles_data)[1:10], "sample.id", names(anopheles_data)[11:21])] %>%
+.h_id_col <- which(names(anopheles_data)=="sample.id.head")
+anopheles_data %<>% .[c(names(.)[1:(.h_id_col-1)], "sample.id", names(.)[.h_id_col:(ncol(anopheles_data)-1)])] %>%
   droplevels() %>%  # remove empty levels
   arrange(sample.id)
 

@@ -115,8 +115,7 @@ write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were abs
   column_to_rownames("Species.Type")
 tab_village_anoph <- rbind(.tab_v_counts, .tab_v_abd, .tab_v_spp)
 .unid_row <- which(rownames(tab_village_anoph)=="Un-identified")
-tab_village_anoph %<>% { .[c(rownames(tab_village_anoph)[1:(.unid_row-1)],
-                           rownames(tab_village_anoph)[(.unid_row+1):nrow(tab_village_anoph)], "Un-identified"), ] }
+tab_village_anoph %<>% .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ]
 row.names(tab_village_anoph)[1] <- "Total female anoph collected"
 tab_village_anoph[["Total female anoph collected", "Total"]] <-
   rowSums(tab_village_anoph["Total female anoph collected", 1:(which(colnames(tab_village_anoph)=="Total")-1)])
@@ -130,8 +129,7 @@ tab_abd_anoph <- table(anopheles_data$species.type, anopheles_data$abdominal.sta
   arrange(desc(`Blood Fed`)) %>%
   column_to_rownames("Species.Type")
 .unid_row <- which(rownames(tab_abd_anoph)=="Un-identified")
-tab_abd_anoph <- tab_abd_anoph[c(rownames(tab_abd_anoph)[1:(.unid_row-1)],
-                                 rownames(tab_abd_anoph)[(.unid_row+1):nrow(tab_abd_anoph)], "Un-identified"), ]
+tab_abd_anoph %<>% .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ]
 
 
 # tab_village_allsp <- 
