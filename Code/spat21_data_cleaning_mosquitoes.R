@@ -220,7 +220,7 @@ qpcr_data %<>% mutate(Head.Abd=factor(Head.Abd))
 write.log("Extracted sample IDs and heads/abdomens")
 
 # Sort dataset and reorder columns.
-qpcr_data %<>% .[c("Sample.ID", "Head.Abd", names(qpcr_data)[1:26])] %>% arrange(Sample.ID, Head.Abd)
+qpcr_data %<>% .[c("Sample.ID", "Head.Abd", names(.)[1:26])] %>% arrange(Sample.ID, Head.Abd)
 
 
 #### --------------- export cleaned data --------------- ####
