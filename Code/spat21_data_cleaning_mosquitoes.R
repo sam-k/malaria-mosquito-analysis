@@ -197,7 +197,7 @@ write.log("Specified species and comments for M07 00013, M07 00094, M14 00020 ap
 
 # Sort dataset and reorder columns.
 .h_id_col <- which(names(anopheles_data)=="sample.id.head")
-anopheles_data %<>% .[c(names(.)[1:(.h_id_col-1)], "sample.id", names(.)[.h_id_col:(ncol(anopheles_data)-1)])] %>%
+anopheles_data %<>% .[c(names(.)[1:(.h_id_col-1)], "sample.id", names(.)[.h_id_col:(ncol(.)-1)])] %>%
   droplevels() %>%  # remove empty levels
   arrange(sample.id)
 
