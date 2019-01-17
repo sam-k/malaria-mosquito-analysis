@@ -12,6 +12,7 @@ library(tidyr)
 library(lubridate)
 library(magrittr)
 library(tibble)
+library(openxlsx)
 
 
 #### ---------------- set up environment --------------- ####
@@ -19,11 +20,12 @@ library(tibble)
 CLEANED_FP    <- paste0(.wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
 MERGED_CSV_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.csv")
 MERGED_RDS_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.rds")
+MERGED_TAB_FP <- paste0(.wd, "Data/Merged mosquito tabulations.xlsx")
 LOG_FP        <- paste0(.wd, "Code/spat21_data_merging_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
-  for(.output in list(...)) {
-    write(.output, file=LOG_FP, append=TRUE)
+  for(output in list(...)) {
+    write(output, file=LOG_FP, append=TRUE)
   }
   write("", file=LOG_FP, append=TRUE)
 }
@@ -102,41 +104,74 @@ write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were abs
 
 #### -------------- tabulate merged data --------------- ####
 
-# Tabulate mosquito, abdominal status, and species counts per village.
-.tab_v_counts <- table(merged_data$village)
-.tab_v_abd    <- table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
-                       merged_data$village) %>%
+write.log("# ------ TABULATE MERGED DATA ------ #")
+
+# Tabulate village and abdominal status.
+tab_village_abd <- rbind(table(merged_data$village),
+                         table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
+                               merged_data$village)) %>%
   cbind(Total=rowSums(.))
-.tab_v_spp    <- table(merged_data$species.type, merged_data$village) %>%
+row.names(tab_village_abd)[1] <- "Total female anoph collected"
+tab_village_abd[["Total female anoph collected", "Total"]] <-
+  sum(tab_village_abd["Total female anoph collected", 1:(which(colnames(tab_village_abd)=="Total")-1)])
+write.table(tab_village_abd, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
+
+# Tabulate village and species.
+tab_village_spp <- table(merged_data$species.type, merged_data$village) %>%
   cbind(Total=rowSums(.)) %>%
   as.data.frame() %>%
-  rownames_to_column("Species.Type") %>%  # arrange removes rownames
+  rownames_to_column("Species.Type") %>%  # preserve rownames
   arrange(desc(Total)) %>%
   column_to_rownames("Species.Type")
-tab_village_anoph <- rbind(.tab_v_counts, .tab_v_abd, .tab_v_spp)
-.unid_row <- which(rownames(tab_village_anoph)=="Un-identified")
-tab_village_anoph %<>% .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ]
-row.names(tab_village_anoph)[1] <- "Total female anoph collected"
-tab_village_anoph[["Total female anoph collected", "Total"]] <-
-  rowSums(tab_village_anoph["Total female anoph collected", 1:(which(colnames(tab_village_anoph)=="Total")-1)])
+.unid_row <- which(rownames(tab_village_spp)=="Un-identified")
+tab_village_spp %<>%
+  .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ] %>%  # reorder rows
+  rbind(Other=colSums(.[5:(nrow(.)-1), ])) %>%
+  .[c(rownames(.)[1:4], "Other", "Un-identified"), ]
+write.table(tab_village_spp, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
 
-# Tabulate species counts per abdominal status.
-tab_abd_anoph <- table(anopheles_data$species.type, anopheles_data$abdominal.status) %>%
+# Tabulate species counts per abdominal and infection status.
+.tab_a_abd <- table(merged_data$species.type, merged_data$abdominal.status) %>%
   cbind(`Gravid or Half Gravid`=rowSums(.[, c("Gravid","Half Gravid")])) %>%
   as.data.frame() %>%
-  select(`Blood Fed`, `Gravid or Half Gravid`) %>%
-  rownames_to_column("Species.Type") %>%
+  select(`Blood Fed`, `Gravid or Half Gravid`)
+make_a_inf_table <- function(row_name, col_name, crit_name, crit=TRUE) {
+  table(merged_data[, row_name], merged_data[, col_name]) %>%
+    as.data.frame() %>%
+    `colnames<-`(c(row_name, col_name, crit_name)) %>%
+    filter(.[, col_name]==crit) %>%
+    column_to_rownames(row_name) %>%
+    select(crit_name)
+}
+tab_infection_spp <- cbind(.tab_a_abd,
+                           make_a_inf_table("species.type", "any.has.Hb", "Human Fed"),
+                           make_a_inf_table("species.type", "H.has.Pf", "Infected (Head)"),
+                           make_a_inf_table("species.type", "A.has.Pf", "Infected (Abdomen)"),
+                           make_a_inf_table("species.type", "any.has.Pf", "Infected (Mosquito)")) %>%
+  rownames_to_column("Species Type") %>%  # preserve rownames
   arrange(desc(`Blood Fed`)) %>%
-  column_to_rownames("Species.Type")
-.unid_row <- which(rownames(tab_abd_anoph)=="Un-identified")
-tab_abd_anoph %<>% .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ]
-
-
-# tab_village_allsp <- 
-# 
-# tab_abd_allsp   <- 
+  column_to_rownames("Species Type")
+.unid_row <- which(rownames(tab_infection_spp)=="Un-identified")
+tab_infection_spp %<>%
+  .[c(rownames(.)[1:(.unid_row-1)], rownames(.)[(.unid_row+1):nrow(.)], "Un-identified"), ] %>%  # reorder rows
+  rbind(Other=colSums(.[5:(nrow(.)-1), ])) %>%
+  .[c(rownames(.)[1:4], "Other", "Un-identified"), ]
+write.table(tab_infection_spp, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
+write.log()
 
 
 #### ---------------- export merged data --------------- ####
+
+# Export data.
 write.csv(merged_data, file=MERGED_CSV_FP, row.names=FALSE)
 saveRDS(merged_data, file=MERGED_RDS_FP)
+
+# Export tabulations.
+.wb <- createWorkbook()
+addWorksheet(.wb, "SK_tables")
+writeData(.wb, sheet="SK_tables", x=tab_village_abd, rowNames=TRUE)
+writeData(.wb, sheet="SK_tables", x=tab_village_spp, rowNames=TRUE, startRow=nrow(tab_village_abd)+3)
+writeData(.wb, sheet="SK_tables", x=tab_infection_spp, rowNames=TRUE, startCol=ncol(tab_village_abd)+3)
+saveWorkbook(.wb, MERGED_TAB_FP, overwrite=TRUE)
