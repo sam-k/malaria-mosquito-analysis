@@ -23,8 +23,8 @@ IMPORTED_FP   <- paste0(.wd, "Data/Data Sets/imported_mosquito_data.Rdata")
 LOG_FP        <- paste0(.wd, "Code/spat21_data_import_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
-  for(.output in list(...)) {
-    write(.output, file=LOG_FP, append=TRUE)
+  for(output in list(...)) {
+    write(output, file=LOG_FP, append=TRUE)
   }
   write("", file=LOG_FP, append=TRUE)
 }
