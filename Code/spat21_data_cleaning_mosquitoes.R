@@ -55,9 +55,6 @@ write.log()
 allspecies_data$village <- .village_dict[substr(allspecies_data$household.id, 1, 1)]
 write.log(paste("Village names for", nrow(discr_sp_villageid), "samples did not match household/sample IDs and were corrected"))
 
-# Sort dataset.
-allspecies_data %<>% arrange(collection.date, household.id)
-
 
 #### -------------- clean descriptive data ------------- ####
 
@@ -103,10 +100,15 @@ write.table(discr_an_idid, row.names=FALSE, col.names=c("Sample ID H","Sample ID
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 anopheles_data$sample.id.abdomen[anopheles_data$sample.id.head=="K05 H00008"] <- "K05 A00008"
+.which_id <- which(anopheles_data$sample.id.head=="M13 H00035" & anopheles_data$collection.date=="2018-05-22")
+anopheles_data$household.id[.which_id]      <- "M16"
+anopheles_data$sample.id.head[.which_id]    <- "M16 H00035"
+anopheles_data$sample.id.abdomen[.which_id] <- "M16 A00035"
 anopheles_data %<>% .[-which(duplicated(.$sample.id.head, fromLast=TRUE)
                            | duplicated(.$sample.id.abdomen, fromLast=TRUE)), ]
 write.log("K05 A00008 was written as K05 A00005 and was corrected",
-          "Duplicate entries of M13 00035, M03 00021 were removed")
+          "M13 00035 was duplicated but is believed to be M16 00035 and was corrected",
+          "Identically duplicate entries of M03 00021 were removed")
 
 # Extract sample IDs.
 anopheles_data$sample.id <- gsub("\\s*[AH]\\s*", " ", anopheles_data$sample.id.head)
@@ -127,7 +129,7 @@ write.log()
 for(.i in 1:nrow(anopheles_data)) {
   anopheles_data$village[[.i]] <- .village_dict[substr(anopheles_data$household.id[[.i]], 1, 1)]
 }
-write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were corrected"))
+write.log(paste("Village names for", nrow(discr_an_villageid), "samples did not match household/sample IDs and were overridden"))
 
 # Check if household names are consistent with sample IDs.
 discr_an_hhid <- anopheles_data %>%
@@ -195,11 +197,10 @@ anopheles_data %<>% mutate_at(c("species.type"), factor)
 write.log("Specified species and comments for M07 00013, M07 00094, M14 00020 appeared swapped and were corrected",
           paste("Duplicate species rows for", nrow(discr_an_sppcomment)-3, "samples were merged (An. pretoriensis)"))
 
-# Sort dataset and reorder columns.
+# Reorder columns.
 .h_id_col <- which(names(anopheles_data)=="sample.id.head")
 anopheles_data %<>% .[c(names(.)[1:(.h_id_col-1)], "sample.id", names(.)[.h_id_col:(ncol(.)-1)])] %>%
-  droplevels() %>%  # remove empty levels
-  arrange(sample.id)
+  droplevels()  # remove empty levels
 
 
 #### ----------------- clean qPCR data ----------------- ####
@@ -219,8 +220,8 @@ qpcr_data$Head.Abd  <- gsub("[^AH]", "", qpcr_data$Sample.Name)
 qpcr_data %<>% mutate(Head.Abd=factor(Head.Abd))
 write.log("Extracted sample IDs and heads/abdomens")
 
-# Sort dataset and reorder columns.
-qpcr_data %<>% .[c("Sample.ID", "Head.Abd", names(.)[1:26])] %>% arrange(Sample.ID, Head.Abd)
+# Reorder columns.
+qpcr_data %<>% .[c("Sample.ID", "Head.Abd", names(.)[1:26])]
 
 
 #### --------------- export cleaned data --------------- ####

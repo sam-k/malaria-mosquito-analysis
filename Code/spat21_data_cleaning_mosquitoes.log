@@ -40,7 +40,8 @@ M13 H00035	M13 A00035
 M13 H00035	M13 A00035
 
 K05 A00008 was written as K05 A00005 and was corrected
-Duplicate entries of M13 00035, M03 00021 were removed
+M13 00035 was duplicated but is believed to be M16 00035 and was corrected
+Identically duplicate entries of M03 00021 were removed
 
 Extracted sample IDs
 
@@ -53,7 +54,7 @@ S05	Maruti	S05 00011
 S08	Kinesamo	S08 00009
 S08	Kinesamo	S08 00010
 
-Village names for 7 samples did not match household/sample IDs and were corrected
+Village names for 7 samples did not match household/sample IDs and were overridden
 
 HH	Sample ID H	Sample ID A
 K02	K07 H00010	K07 A00010

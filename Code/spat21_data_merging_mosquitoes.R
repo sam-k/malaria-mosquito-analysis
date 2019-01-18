@@ -32,8 +32,11 @@ write.log <- function(...) {
 
 
 #### -------------- read in mosquito data -------------- ####
-load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
 
+load(CLEANED_FP)  # allspecies_data, anopheles_data, qpcr_data
+allspecies_data %<>% arrange(collection.date, household.id)
+anopheles_data  %<>% arrange(sample.id)
+qpcr_data       %<>% arrange(Sample.ID, Head.Abd)
 
 #### ------------- merge mosquito data sets ------------ ####
 
@@ -88,7 +91,7 @@ write.table(unmerged_anoph, row.names=FALSE, col.names=c("Sample ID","Any Hb","H
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 write.log("If any.has.XX is NA, that entry was not present in the anopheles descriptive data",
-          paste("From the anopheles descriptive dataset,", nrow(unmerged_anoph), "entries did not merge"))
+          paste("From the anopheles descriptive dataset,", nrow(unmerged_anoph), "entries did not merge and were discarded from the data"))
 
 # Check if any qPCR entries were not merged.
 unmerged_qpcr <- qpcr_groupeddata %>%
@@ -99,7 +102,8 @@ unmerged_qpcr <- qpcr_groupeddata %>%
 write.table(unmerged_qpcr, row.names=FALSE, col.names=c("Sample ID","Any Hb","H Hb","A Hb","Any Pf","H Pf","A Pf"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
-write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were absent in the descriptive data and did not merge"))
+write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were absent in the descriptive data and did not merge"),
+          "Samples were absent from shipments and were discarded from the data")
 
 
 #### -------------- tabulate merged data --------------- ####
