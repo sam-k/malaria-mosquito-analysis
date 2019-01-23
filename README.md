@@ -14,12 +14,13 @@ Part of the [Spatial R21 project](https://sites.duke.edu/taylorlab/projects/#Mol
 - Correct formatting errors in household and sample IDs.
 - Correct inconsistencies in village, household, and sample IDs within each sample.
 - Correct inconsistencies in descriptions of each mosquito.
-- Remove duplicate entries of the same sample.
+- Resolve duplicate entries of the same sample.
 - Remove redundant columns.
-- Sort all datasets.
 
 ### Merging data
+- Sort all datasets.
 - Create a dataset pairing mosquito descriptions with corresponding qPCR results.
+- Identify missing entries between datasets.
 - Tabulate mosquito counts per village, abdominal status, and species.
 
 ## Preliminary data analysis
