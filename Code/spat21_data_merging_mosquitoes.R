@@ -90,6 +90,7 @@ unmerged_anoph <- merged_data %>%
 write.table(unmerged_anoph, row.names=FALSE, col.names=c("Sample ID","Any Hb","H Hb","A Hb","Any Pf","H Pf","A Pf"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
+# merged_data %<>% .[not(.$sample.id %in% unmerged_anoph$sample.id), ]
 write.log("If any.has.XX is NA, that entry was not present in the anopheles descriptive data",
           paste("From the anopheles descriptive dataset,", nrow(unmerged_anoph), "entries did not merge and were discarded from the data"))
 
@@ -102,6 +103,7 @@ unmerged_qpcr <- qpcr_groupeddata %>%
 write.table(unmerged_qpcr, row.names=FALSE, col.names=c("Sample ID","Any Hb","H Hb","A Hb","Any Pf","H Pf","A Pf"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
+# merged_data %<>% .[not(.$sample.id %in% unmerged_qpcr$sample.id), ]
 write.log(paste("From the qPCR dataset,", nrow(unmerged_qpcr), "entries were absent in the descriptive data and did not merge"),
           "Samples were absent from shipments and were discarded from the data")
 
@@ -114,7 +116,8 @@ write.log("# ------ TABULATE MERGED DATA ------ #")
 tab_village_abd <- rbind(table(merged_data$village),
                          table(factor(merged_data$abdominal.status, levels=c("Blood Fed","Half Gravid","Gravid","Unfed","Undetermined")),
                                merged_data$village)) %>%
-  cbind(Total=rowSums(.))
+  cbind(Total=rowSums(.)) %>%
+  as.data.frame()
 row.names(tab_village_abd)[1] <- "Total female anoph collected"
 tab_village_abd[["Total female anoph collected", "Total"]] <-
   sum(tab_village_abd["Total female anoph collected", 1:(which(colnames(tab_village_abd)=="Total")-1)])
