@@ -18,6 +18,7 @@ library(openxlsx)
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
 CLEANED_FP    <- paste0(.wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
+MERGED_FP     <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.Rdata")
 MERGED_CSV_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.csv")
 MERGED_RDS_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.rds")
 MERGED_TAB_FP <- paste0(.wd, "Data/Merged mosquito tabulations.xlsx")
@@ -38,7 +39,8 @@ allspecies_data %<>% arrange(collection.date, household.id)
 anopheles_data  %<>% arrange(sample.id)
 qpcr_data       %<>% arrange(Sample.ID, Head.Abd)
 
-#### ------------- merge mosquito data sets ------------ ####
+
+#### ------------- merge mosquito datasets ------------ ####
 
 write.log("# ------ MERGE MOSQUITO DATA ------ #")
 
@@ -172,6 +174,7 @@ write.log()
 #### ---------------- export merged data --------------- ####
 
 # Export data.
+save(allspecies_data, merged_data, file=MERGED_FP)
 write.csv(merged_data, file=MERGED_CSV_FP, row.names=FALSE)
 saveRDS(merged_data, file=MERGED_RDS_FP)
 

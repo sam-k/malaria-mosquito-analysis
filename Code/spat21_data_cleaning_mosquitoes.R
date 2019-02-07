@@ -53,6 +53,9 @@ write.table(discr_sp_villageid, row.names=FALSE, col.names=c("HH","Village"),
             file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
 allspecies_data$village <- .village_dict[substr(allspecies_data$household.id, 1, 1)]
+allspecies_data$village %<>%
+  unlist() %>%
+  factor()
 write.log(paste("Village names for", nrow(discr_sp_villageid), "samples did not match household/sample IDs and were corrected"))
 
 
