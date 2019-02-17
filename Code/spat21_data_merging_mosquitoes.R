@@ -21,7 +21,6 @@ CLEANED_FP    <- paste0(.wd, "Data/Data Sets/cleaned_mosquito_data.Rdata")
 MERGED_FP     <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.Rdata")
 MERGED_CSV_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.csv")
 MERGED_RDS_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.rds")
-MERGED_TAB_FP <- paste0(.wd, "Data/Merged mosquito tabulations.xlsx")
 LOG_FP        <- paste0(.wd, "Code/spat21_data_merging_mosquitoes.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
