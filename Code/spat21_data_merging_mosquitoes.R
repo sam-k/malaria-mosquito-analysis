@@ -11,8 +11,6 @@ library(dplyr)
 library(tidyr)
 library(lubridate)
 library(magrittr)
-library(tibble)
-library(openxlsx)
 
 
 #### ---------------- set up environment --------------- ####

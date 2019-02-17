@@ -36,29 +36,3 @@ S09 00003	TRUE	NA	TRUE	FALSE	NA	FALSE
 From the qPCR dataset, 3 entries were absent in the descriptive data and did not merge
 Samples were absent from shipments and were discarded from the data
 
-# ------ TABULATE MERGED DATA ------ #
-
-	Kinesamo	Maruti	Sitabicha	Total
-Total female anoph collected	404	858	232	1494
-Blood Fed	113	297	67	477
-Half Gravid	163	320	104	587
-Gravid	59	158	38	255
-Unfed	66	81	21	168
-Undetermined	3	2	2	7
-
-	Kinesamo	Maruti	Sitabicha	Total
-An. gambiae	298	545	180	1023
-An. funestus	14	55	2	71
-An. pretoriensis	1	11	1	13
-An. demeilloni	3	6	3	12
-Other	3	14	3	20
-Un-identified	85	227	43	355
-
-	Blood Fed	Gravid or Half Gravid	Human Fed	Infected (Head)	Infected (Abdomen)	Infected (Mosquito)
-An. gambiae	276	628	613	90	120	150
-An. funestus	27	39	42	6	8	11
-An. demeilloni	4	8	9	2	3	4
-An. pretoriensis	3	9	2	0	0	0
-Other	3	14	9	1	1	1
-Un-identified	164	144	214	35	68	79
-
