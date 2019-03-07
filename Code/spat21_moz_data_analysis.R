@@ -13,12 +13,14 @@ library(lubridate)
 library(magrittr)
 library(tibble)
 library(openxlsx)
+library(ggplot2)
+library(reshape2)
 
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-MERGED_FP <- paste0(.wd, "Data/Data Sets/merged_mosquito_data.Rdata")
-LOG_FP    <- paste0(.wd, "Code/spat21_data_analysis_mosquitoes.log")
+MERGED_FP <- paste0(.wd, "Data/Data Sets/moz_merged_data.Rdata")
+LOG_FP    <- paste0(.wd, "Code/spat21_moz_data_analysis.log")
 TAB_FP <- paste0(.wd, "Data/mosquito_tabulations.xlsx")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
@@ -132,6 +134,37 @@ tab_merged_s_ai %<>%
   .[c(rownames(.)[1:4], "Other", "Un-identified"), ]
 write.table(tab_merged_s_ai, col.names=NA, file=LOG_FP, append=TRUE, quote=FALSE, sep="\t")
 write.log()
+
+
+#### ----------------- visualize data ------------------ ####
+
+write.log("# ------ VISUALIZE DATA ------ #")
+
+# Correlation between parasitemias in replicates.
+.temp_dat <- merged_data %>%
+  select(village, H.pfr364CT1, H.pfr364CT2, A.pfr364CT1, A.pfr364CT2)
+plot_pfr_corr <- ggplot(na.omit(.temp_dat)) +
+  geom_point(aes(x=H.pfr364CT1, y=H.pfr364CT2, color="head"), size=1) +
+  geom_smooth(aes(x=H.pfr364CT1, y=H.pfr364CT2, color="head"), method=lm) +
+  geom_point(aes(x=A.pfr364CT1, y=A.pfr364CT2, color="abd"), size=1) +
+  geom_smooth(aes(x=A.pfr364CT1, y=A.pfr364CT2, color="abd"), method=lm) +
+  labs(x="Parasitemia CT rep1", y="Parasitemia CT rep2") +
+  scale_color_manual(name="", values=c("head"="blue","abd"="red"), labels=c("Head","Abd"))
+plot(plot_pfr_corr)
+
+# Distribution of parasitemia for each village.
+.temp_dat <- merged_data %>%
+  select(village, H.pfr364CT1, H.pfr364CT2, A.pfr364CT1, A.pfr364CT2) %>%
+  mutate_at(c("village"), factor)
+plot_pfr_village <- ggplot(na.omit(.temp_dat)) +
+  geom_boxplot(aes(x=village, y=H.pfr364CT1)) +
+  labs(x="Village", y="Parasitemia CT")
+plot(plot_pfr_village)
+
+# Log-risk regression model to predict malaria infection prevalence.
+model_regr <- glm(any.has.Pf~abdominal.status+village+species.type, family=binomial("logit"), data=merged_data)
+summary(model_regr)
+plot(model_regr)
 
 
 #### ----------------- export analyses ----------------- ####
