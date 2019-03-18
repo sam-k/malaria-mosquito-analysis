@@ -15,9 +15,9 @@ library(magrittr)
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-MONTHLY_FP  <- paste0(.wd, "Data/Data Sets/hum_monthly_merged_with_table_and_sick_with_exclusion_data_27FEB2019.RDS")
-QPCR_FP     <- paste0(.wd, "Data/Data Sets/spat21_qpcr_data_clean_human_dbs_16JAN2019.RDS")
-IMPORTED_FP <- paste0(.wd, "Data/Data Sets/human_imported_data.Rdata")
+MONTHLY_FP  <- paste0(.wd, "Data/Human Data Sets/hum_monthly_merged_with_table_and_sick_with_exclusion_data_27FEB2019.RDS")
+QPCR_FP     <- paste0(.wd, "Data/Human Data Sets/spat21_qpcr_data_clean_human_dbs_16JAN2019.RDS")
+IMPORTED_FP <- paste0(.wd, "Data/Human Data Sets/human_imported_data.Rdata")
 LOG_FP      <- paste0(.wd, "Code/spat21_human_data_import.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {

@@ -15,11 +15,11 @@ library(magrittr)
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-ALLSPECIES_FP <- paste0(.wd, "Data/Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
-ANOPHELES_FP  <- paste0(.wd, "Data/Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
-QPCR_FP       <- paste0(.wd, "Data/Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
+ALLSPECIES_FP <- paste0(.wd, "Data/Mosquito Data Sets/MOZZIECollectionSummary_June2017_July2018.csv")
+ANOPHELES_FP  <- paste0(.wd, "Data/Mosquito Data Sets/MOZZIEFemaleAnophele_June2017_July2018.csv")
+QPCR_FP       <- paste0(.wd, "Data/Mosquito Data Sets/Mozzie mosquito compiled detection results 18Dec2018.csv")
 DATA_DICT_FP  <- paste0(.wd, "Data/Data Dictionary/spat21_data_mosquito_dictionary.csv")
-IMPORTED_FP   <- paste0(.wd, "Data/Data Sets/moz_imported_data.Rdata")
+IMPORTED_FP   <- paste0(.wd, "Data/Mosquito Data Sets/moz_imported_data.Rdata")
 LOG_FP        <- paste0(.wd, "Code/spat21_moz_data_import.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {

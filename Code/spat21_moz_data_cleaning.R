@@ -14,8 +14,8 @@ library(magrittr)
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-IMPORTED_FP <- paste0(.wd, "Data/Data Sets/moz_imported_data.Rdata")
-CLEANED_FP  <- paste0(.wd, "Data/Data Sets/moz_cleaned_data.Rdata")
+IMPORTED_FP <- paste0(.wd, "Data/Mosquito Data Sets/moz_imported_data.Rdata")
+CLEANED_FP  <- paste0(.wd, "Data/Mosquito Data Sets/moz_cleaned_data.Rdata")
 LOG_FP      <- paste0(.wd, "Code/spat21_moz_data_cleaning.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {

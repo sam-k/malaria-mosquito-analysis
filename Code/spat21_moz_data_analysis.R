@@ -19,7 +19,7 @@ library(reshape2)
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-MERGED_FP <- paste0(.wd, "Data/Data Sets/moz_merged_data.Rdata")
+MERGED_FP <- paste0(.wd, "Data/Mosquito Data Sets/moz_merged_data.Rdata")
 LOG_FP    <- paste0(.wd, "Code/spat21_moz_data_analysis.log")
 TAB_FP <- paste0(.wd, "Data/mosquito_tabulations.xlsx")
 close(file(LOG_FP, open="w"))  # clear log file

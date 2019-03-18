@@ -15,10 +15,10 @@ library(magrittr)
 
 #### ---------------- set up environment --------------- ####
 .wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
-CLEANED_FP    <- paste0(.wd, "Data/Data Sets/moz_cleaned_data.Rdata")
-MERGED_FP     <- paste0(.wd, "Data/Data Sets/moz_merged_data.Rdata")
-MERGED_CSV_FP <- paste0(.wd, "Data/Data Sets/moz_merged_data.csv")
-MERGED_RDS_FP <- paste0(.wd, "Data/Data Sets/moz_merged_data.rds")
+CLEANED_FP    <- paste0(.wd, "Data/Mosquito Data Sets/moz_cleaned_data.Rdata")
+MERGED_FP     <- paste0(.wd, "Data/Mosquito Data Sets/moz_merged_data.Rdata")
+MERGED_CSV_FP <- paste0(.wd, "Data/Mosquito Data Sets/moz_merged_data.csv")
+MERGED_RDS_FP <- paste0(.wd, "Data/Mosquito Data Sets/moz_merged_data.rds")
 LOG_FP        <- paste0(.wd, "Code/spat21_moz_data_merging.log")
 close(file(LOG_FP, open="w"))  # clear log file
 write.log <- function(...) {
