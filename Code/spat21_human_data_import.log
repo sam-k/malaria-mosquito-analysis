@@ -1,0 +1,14 @@
+# ------ IMPORT RAW DATA ------ #
+
+monthly_data dims:
+128 vars
+3141 obs
+
+qpcr_data dims:
+56 vars
+2890 obs
+
+# ------ REFORMAT MONTHLY DATA ------ #
+
+# ------ REFORMAT QPCR DATA ------ #
+

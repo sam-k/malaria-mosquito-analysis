@@ -1,0 +1,21 @@
+# ------ CLEAN MONTHLY DATA ------ #
+
+All healthy monthly entries are formatted correctly
+
+All sick monthly entries are formatted correctly
+
+# ------ CLEAN QPCR DATA ------ #
+
+K07-030817-08
+K07-030817-09
+K07-060717-4A
+K07-060717-4B
+K14-170717-1A-R
+K14-170717-1B-R
+M15-311017-P-R
+M16-270618-P-R
+
+K07-030817-8, K07-030817-9 were miscoded and were corrected
+M15-311017-P-R, M16-270618-P-R were corrected to M15-311017-6-R, M16-270618-4-R
+M03-26018-2 was corrected to M03-26018-2-R
+
