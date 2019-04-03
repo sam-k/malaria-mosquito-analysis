@@ -12,6 +12,7 @@ library(tidyr)
 library(stringr)
 library(lubridate)
 library(magrittr)
+library(reshape2)
 
 
 #### ---------------- set up environment --------------- ####
@@ -31,8 +32,6 @@ write.log <- function(...) {
 #### --------------- read in human data --------------- ####
 
 load(CLEANED_FP)  # monthly_data, qpcr_data
-# monthly_data %<>% arrange(collection.date, household.id)
-# qpcr_data    %<>% arrange(Sample.ID, Head.Abd)
 
 
 #### ------------ standardize IDs by date ------------- ####
@@ -55,52 +54,59 @@ x_monthly_data <- monthly_truedata %>%  # temporary: testing w/ just IDs
   select(`Sample Name`, HH_ID, memID, sickID, date) %>%
   mutate(sampleID = str_extract(`Sample Name`, ".*[^-R]"))
 x_qpcr_data <- qpcr_truedata %>%
-  select(`Sample Name`, HH_ID, memID, altID, sickID, date) %>%
+  select(`Sample Name`, HH_ID, memID, altID, sickID, date, pf_pcr_infection_status) %>%
   mutate(sampleID = str_extract(`Sample Name`, ".*[^-R]"))
 
-.dup_monthly_entries <- !duplicated(x_monthly_data$sampleID, fromLast=TRUE)  # filter out monthly duplicates thru sorting
-.dup_qpcr_entries    <- !duplicated(x_qpcr_data$sampleID, fromLast=TRUE)
-x_monthly_data %<>% filter(.dup_monthly_entries)
-x_qpcr_data    %<>% filter(.dup_qpcr_entries)
-write.log(sprintf("%d monthly subjects had both sick and non-sick entries, latter were discarded",
-                  sum(!.dup_monthly_entries)),
-          sprintf("%d qPCR samples had both sick and non-sick entries, latter were discarded",
-                  sum(!.dup_qpcr_entries)))
+c_monthly_data <- x_monthly_data  # temporary: copy original datasets, just in case
+c_qpcr_data    <- x_qpcr_data
+
+.dup_monthly <- duplicated(x_monthly_data$sampleID, fromLast=TRUE)  # filter out monthly duplicates thru sorting
+.dup_qpcr    <- duplicated(x_qpcr_data$sampleID, fromLast=TRUE)
+dup_monthly <- x_monthly_data %>%
+  filter(.dup_monthly | duplicated(.$sampleID)) %>%
+  arrange(sampleID)
+dup_qpcr <- x_qpcr_data %>%
+  filter(.dup_qpcr | duplicated(.$sampleID)) %>%
+  arrange(sampleID)
+x_monthly_data %<>% filter(!.dup_monthly)
+x_qpcr_data    %<>% filter(!.dup_qpcr)
+write.log(sprintf("%d monthly subjects had both sick and non-sick entries, latter were discarded", sum(.dup_monthly)),
+          sprintf("%d qPCR samples had both sick and non-sick entries, latter were discarded", sum(.dup_qpcr)))
 
 # Remove duplicate sick/non-sick entries across both datasets.
 
-# .sample_ids <- unique(c(x_monthly_data$`Sample Name`, x_qpcr_data$`Sample Name`)) %>%
-#   as.data.frame() %>%
-#   `colnames<-`(c("Sample Name")) %>%
-#   mutate(sampleID = str_extract(`Sample Name`, ".*[^-R]"))
-# 
-# .dup_names <- .sample_ids$sampleID[duplicated(.sample_ids$sampleID)]
-# .dup_monthly_entries <- x_monthly_data$sampleID %in% .dup_names & is.na(x_monthly_data$sickID)
-# .dup_qpcr_entries    <- x_qpcr_data$sampleID %in% .dup_names & is.na(x_qpcr_data$sickID)
-# x_monthly_data$`Sample Name`[.dup_monthly_entries] %<>% paste0("-R")
-# x_qpcr_data$`Sample Name`[.dup_qpcr_entries]       %<>% paste0("-R")
-# write.log(sprintf("%d monthly subjects were marked sick to match qPCR data",
-#                   sum(.dup_monthly_entries)),
-#           sprintf("%d qPCR samples were marked sick to match monthly data",
-#                   sum(.dup_qpcr_entries)))
+.sample_ids <- unique(c(x_monthly_data$`Sample Name`, x_qpcr_data$`Sample Name`)) %>%
+  as.data.frame() %>%
+  `colnames<-`(c("Sample Name")) %>%
+  mutate(sampleID = str_extract(`Sample Name`, ".*[^-R]"))
+
+.dup_names <- .sample_ids$sampleID[duplicated(.sample_ids$sampleID)]
+.dup_monthly_entries <- x_monthly_data$sampleID %in% .dup_names & is.na(x_monthly_data$sickID)
+.dup_qpcr_entries    <- x_qpcr_data$sampleID %in% .dup_names & is.na(x_qpcr_data$sickID)
+x_monthly_data$`Sample Name`[.dup_monthly_entries] %<>% paste0("-R")
+x_qpcr_data$`Sample Name`[.dup_qpcr_entries]       %<>% paste0("-R")
+write.log(sprintf("%d monthly subjects were marked sick to match qPCR data", sum(.dup_monthly_entries)),
+          sprintf("%d qPCR samples were marked sick to match monthly data", sum(.dup_qpcr_entries)))
 
 x_monthly_data %<>%
+  mutate(c.date = date) %>%
+  mutate(`c.Sample Name` = `Sample Name`) %>%
   mutate(sickID = str_extract(`Sample Name`, "R$")) %>%
   arrange(HH_ID, memID, date, `Sample Name`)
 x_qpcr_data %<>%
   mutate_at(c("memID"), as.integer) %>%
+  mutate(c.date = date) %>%
+  mutate(`c.Sample Name` = `Sample Name`) %>%
   mutate(sickID = str_extract(`Sample Name`, "R$")) %>%
   arrange(HH_ID, memID, altID, date, `Sample Name`)
 
-x_monthly_data_copy <- x_monthly_data
+# Match monthly visit dates with qPCR DBS dates by crawling both datasets.
 
-# Match monthly visit dates with qPCR DBS dates.
-
-.i <- 1
-.j <- 1
+.i <- 1  # monthly dataset index
+.j <- 1  # qPCR dataset index
 .misdated_monthly   <- vector("list", nrow(x_monthly_data))
 .misdated_corr_qpcr <- vector("list", nrow(x_qpcr_data))
-while(.i <= nrow(x_monthly_data) & .j <= nrow(x_qpcr_data)) {  # efficiency who? never heard of her
+while(.i <= nrow(x_monthly_data) & .j <= nrow(x_qpcr_data)) {
   if(x_monthly_data$HH_ID[[.i]] == x_qpcr_data$HH_ID[[.j]]) {
     if(x_monthly_data$memID[[.i]] == x_qpcr_data$memID[[.j]]) {
       if(x_monthly_data$date[[.i]] > x_qpcr_data$date[[.j]])    {
@@ -108,11 +114,11 @@ while(.i <= nrow(x_monthly_data) & .j <= nrow(x_qpcr_data)) {  # efficiency who?
         .qpcr_date_j    <- x_qpcr_data$date[[.j]]
         for(.k in 1:6) {  # monthly visit date can be 0-6 days later than qPCR DBS date
           if(.monthly_date_i == .qpcr_date_j + .k) {
+            .misdated_monthly[[.i]]   <- x_monthly_data$`Sample Name`[[.i]]
+            .misdated_corr_qpcr[[.j]] <- x_qpcr_data$`Sample Name`[[.j]]
             x_monthly_data$date[[.i]]          <- .qpcr_date_j
             x_monthly_data$sampleID[[.i]]      <- x_qpcr_data$sampleID[[.j]]
             x_monthly_data$`Sample Name`[[.i]] <- x_qpcr_data$`Sample Name`[[.j]]
-            .misdated_monthly[[.i]]   <- .monthly_date_i
-            .misdated_corr_qpcr[[.j]] <- .qpcr_date_j
             .i <- .i+1
             break
           }
@@ -122,10 +128,39 @@ while(.i <= nrow(x_monthly_data) & .j <= nrow(x_qpcr_data)) {  # efficiency who?
     } else if(x_monthly_data$memID[[.i]] < x_qpcr_data$memID[[.j]]) { .i <- .i+1 } else { .j <- .j+1 }
   } else if(x_monthly_data$HH_ID[[.i]] < x_qpcr_data$HH_ID[[.j]]) { .i <- .i+1 } else { .j <- .j+1 }
 }
-.misdated_monthly   <- Filter(Negate(is.null), .misdated_monthly)
-.misdated_corr_qpcr <- Filter(Negate(is.null), .misdated_corr_qpcr)
+.misdated_monthly %<>% .[lengths(.) != 0] %>%
+  { do.call(rbind, Map(cbind, ., str_extract(., "(?<=-)\\d{6}(?=-)"))) } %>%
+  as.data.frame() %>%
+  `colnames<-`(c("Sample Name.m","date.m")) %>%
+  mutate_at(c("Sample Name.m"), as.character) %>%
+  mutate_at(c("date.m"), dmy) %>%
+  mutate(HH_ID.m = str_extract(`Sample Name.m`, "^[KMS]\\d{2}")) %>%
+  mutate(memID.m = str_extract(`Sample Name.m`, "(?<=-)[1-9]?\\d(?=[AB-]|$)")) %>%
+  arrange(HH_ID.m, memID.m, date.m)
+.misdated_corr_qpcr %<>% .[lengths(.) != 0] %>%
+  { do.call(rbind, Map(cbind, ., str_extract(., "(?<=-)\\d{6}(?=-)"))) } %>%
+  as.data.frame() %>%
+  `colnames<-`(c("Sample Name.q","date.q")) %>%
+  mutate_at(c("Sample Name.q"), as.character) %>%
+  mutate_at(c("date.q"), dmy) %>%
+  mutate(HH_ID.q = str_extract(`Sample Name.q`, "^[KMS]\\d{2}")) %>%
+  mutate(memID.q = str_extract(`Sample Name.q`, "(?<=-)[1-9]?\\d(?=[AB-]|$)")) %>%
+  arrange(HH_ID.q, memID.q, date.q)
+misdated_merged <- cbind(.misdated_monthly, .misdated_corr_qpcr) %>%
+  select(`Sample Name.m`, `date.m`, `Sample Name.q`, `date.q`) %>%
+  mutate(diff = as.integer(date.m - date.q))
+
+
+#### -------------- merge human datasets -------------- ####
 
 x_merged_data <- full_join(x_monthly_data, x_qpcr_data, by="sampleID", suffix=c(".m",".q"))
+
+unmerged_monthly <- x_merged_data[is.na(x_merged_data$`Sample Name.q`), ] %>%
+  select(`Sample Name.m`, HH_ID.m, memID.m, sickID.m, date.m, sampleID)
+unmerged_qpcr    <- x_merged_data[is.na(x_merged_data$`Sample Name.m`), ] %>%
+  select(`Sample Name.q`, HH_ID.q, memID.q, sickID.q, date.q, sampleID)
+
+x_merged_data %<>% filter(!is.na(`Sample Name.m`) & !is.na(`Sample Name.q`))
 
 
 # #### -------------- merge human datasets -------------- ####

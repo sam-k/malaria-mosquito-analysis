@@ -1,3 +1,6 @@
 221 monthly subjects had both sick and non-sick entries, latter were discarded
 9 qPCR samples had both sick and non-sick entries, latter were discarded
 
+0 monthly subjects were marked sick to match qPCR data
+137 qPCR samples were marked sick to match monthly data
+
