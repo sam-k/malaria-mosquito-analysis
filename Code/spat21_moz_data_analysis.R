@@ -140,7 +140,88 @@ write.log()
 
 write.log("# ------ VISUALIZE DATA ------ #")
 
-# Correlation between parasitemias in replicates.
+.month_names <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+.old_abd_stats <- c("bloodfed","gravid","halfgravid","unfed","undetermined")
+.new_abd_stats <- c("Blood-fed","Gravid","Half Gravid","Unfed","Undetermined")
+allspecies_data %<>%
+  mutate(year.month = paste0("'", substr(year(collection.date), 3, 4), " ", .month_names[as.integer(month(collection.date))]))
+
+# Visualize summarized Anopheles data.
+tab_allsp_anoph <- allspecies_data %>%
+  select(year.month, village, anoph.unfed, anoph.bloodfed, anoph.halfgravid, anoph.gravid, anoph.undetermined) %>%
+  group_by(village, year.month) %>%
+  summarize_all(sum) %>%
+  as.data.frame() %>%
+  mutate(village = substr(village, 1, 1))
+melted_allsp_anoph <- tab_allsp_anoph %>%
+  melt(c("village","year.month"),
+       c("anoph.bloodfed","anoph.gravid","anoph.halfgravid","anoph.unfed","anoph.undetermined")) %>%
+  `colnames<-`(c("Village","Month","variable","value")) %>%
+  mutate_at(c("variable"), as.character)
+for(.i in 1:length(.old_abd_stats)) {
+  melted_allsp_anoph[melted_allsp_anoph==paste0("anoph.",.old_abd_stats[.i])] <- .new_abd_stats[.i]
+}
+melted_allsp_anoph$variable %<>% factor(levels=rev(c("Blood-fed","Gravid","Half Gravid","Unfed","Undetermined")))
+melted_allsp_anoph$Month    %<>% factor(levels=c(paste("'17",.month_names), paste("'18",.month_names)))
+plot_allsp_anoph <- ggplot(melted_allsp_anoph, aes(x=Village, y=value, fill=variable)) + 
+  geom_bar(stat="identity", position="stack") +
+  facet_grid(~Month) +
+  labs(x="Month", y="Number of mosquitoes") +
+  scale_fill_brewer("Abdominal status", palette="YlOrRd") +
+  ggtitle("Anopheles") +
+  theme(plot.title=element_text(hjust=0.5))
+plot(plot_allsp_anoph)
+
+# Visualize summarized Culex data.
+tab_allsp_culex <- allspecies_data %>%
+  select(year.month, village, culex.unfed, culex.bloodfed, culex.halfgravid, culex.gravid, culex.undetermined) %>%
+  group_by(village, year.month) %>%
+  summarize_all(sum) %>%
+  as.data.frame() %>%
+  mutate(village = substr(village, 1, 1))
+melted_allsp_culex <- tab_allsp_culex %>%
+  melt(c("village","year.month"),
+       c("culex.bloodfed","culex.gravid","culex.halfgravid","culex.unfed","culex.undetermined")) %>%
+  `colnames<-`(c("Village","Month","variable","value")) %>%
+  mutate_at(c("variable"), as.character)
+for(.i in 1:length(.old_abd_stats)) {
+  melted_allsp_culex[melted_allsp_culex==paste0("culex.",.old_abd_stats[.i])] <- .new_abd_stats[.i]
+}
+melted_allsp_culex$variable %<>% factor(levels=rev(c("Blood-fed","Gravid","Half Gravid","Unfed","Undetermined")))
+melted_allsp_culex$Month    %<>% factor(levels=c(paste("'17",.month_names), paste("'18",.month_names)))
+plot_allsp_culex <- ggplot(melted_allsp_culex, aes(x=Village, y=value, fill=variable)) + 
+  geom_bar(stat="identity", position="stack") +
+  facet_grid(~Month) +
+  labs(x="Month", y="Number of mosquitoes") +
+  scale_fill_brewer("Abdominal status", palette="PuRd") +
+  ggtitle("Culex") +
+  theme(plot.title=element_text(hjust=0.5))
+plot(plot_allsp_culex)
+
+# Visualize correlations between parasite densities (Q's) in replicates.
+.merged_h <- merged_data %>%
+  select(H.pfr364Q1, H.pfr364Q2) %>%
+  `colnames<-`(c("pfr364Q1","pfr364Q2")) %>%
+  mutate(Head.Abd = "H")
+.merged_h %<>% .[!is.na(.$pfr364Q1) & !is.na(.$pfr364Q2), ]
+.merged_a <- merged_data %>%
+  select(A.pfr364Q1, A.pfr364Q2) %>%
+  `colnames<-`(c("pfr364Q1","pfr364Q2")) %>%
+  mutate(Head.Abd = "A")
+.merged_a %<>% .[!is.na(.$pfr364Q1) & !is.na(.$pfr364Q2), ]
+melted_reps <- rbind(.merged_h, .merged_a) %>%
+  as.data.frame()
+melted_reps[melted_reps=="H"] <- "Head"
+melted_reps[melted_reps=="A"] <- "Abdomen"
+plot_reps <- ggplot(melted_reps, aes(x=pfr364Q1, y=pfr364Q2, color=Head.Abd)) + 
+  geom_point(alpha=0.5) +
+  geom_smooth(method=lm, size=0.75) +
+  coord_fixed(ratio=1, xlim=c(0, 0.002), ylim = c(0, 0.003)) +
+  scale_x_continuous(breaks=scales::pretty_breaks(n=3)) +
+  scale_color_brewer("Mosquito Part", palette="Set2")
+plot(plot_reps)
+
+# Correlation between parasitemias (CTs) in replicates.
 .temp_dat <- merged_data %>%
   select(village, H.pfr364CT1, H.pfr364CT2, A.pfr364CT1, A.pfr364CT2)
 plot_pfr_corr <- ggplot(na.omit(.temp_dat)) +
@@ -162,9 +243,18 @@ plot_pfr_village <- ggplot(na.omit(.temp_dat)) +
 plot(plot_pfr_village)
 
 # Log-risk regression model to predict malaria infection prevalence.
-model_regr <- glm(any.has.Pf~abdominal.status+village+species.type, family=binomial("logit"), data=merged_data)
+table(merged_data$abdominal.status, useNA = "always")
+exposure <- ifelse(merged_data$abdominal.status %in% c("Blood Fed", "Gravid", "Half Gravid"), "Blood Fed", "Unfed")
+table(exposure, useNA="always")
+merged_data$exposure <- exposure
+merged_data$exposure = as.factor(merged_data$exposure)
+merged_data$village = as.factor(merged_data$village)
+merged_data$species.type = as.factor(merged_data$species.type)
+merged_data$exposure = relevel(merged_data$exposure,"Unfed")
+model_regr <- glm(any.has.Pf~exposure+village+species.type, family=binomial("logit"), data=merged_data)
 summary(model_regr)
-plot(model_regr)
+# plot(model_regr)
+confint(model_regr)
 
 
 #### ----------------- export analyses ----------------- ####
