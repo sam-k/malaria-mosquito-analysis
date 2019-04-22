@@ -1,0 +1,289 @@
+---
+title: "Spat21 Data Set Merging"
+author: "Sam Kim"
+date: "March 4, 2019"
+output: html_notebook
+---
+
+###Set up
+
+Load monthly followup and qPCR data.
+
+```{r setup}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(lubridate)
+library(magrittr)
+library(reshape2)
+
+.wd <- "~/Projects/Malaria collab/Spatial R21 projects/Spat21 cleaning, analysis/"
+CLEANED_FP <- paste0(.wd, "Data/Human Data Sets/human_cleaned_data.Rdata")  # input
+MERGED_FP  <- paste0(.wd, "Data/Human Data Sets/human_merged_data.Rdata")  # output
+
+load(CLEANED_FP)  # monthly_data, qpcr_data
+```
+
+**3141 total entries** in monthly dataset (2621 non-sick, 520 sick), with no overlap between the two.
+
+**2890 entries** in qPCR dataset.
+
+```{r data checks}
+nrow(monthly_data)
+nrow(monthly_data[!is.na(monthly_data$monthly_unq_memID), ])
+nrow(monthly_data[!is.na(monthly_data$sick_unq_memID), ])
+nrow(monthly_data[!is.na(monthly_data$monthly_unq_memID) & !is.na(monthly_data$sick_unq_memID), ])
+
+nrow(qpcr_data)
+```
+
+###Summarize
+
+221 pairs of monthly samples have both sick and non-sick entries. (**442 total duplicated**)
+
+9 pairs of qPCR samples have both sick and non-sick entries. (**18 total duplicated**)
+
+**2 pairs** of qPCR samples have A/B entries. (4 total entries)
+
+K07-060717-4A/B have same Pf infection statuses (FALSE).
+
+K14-170717-1A/B-R have different Pf infection statuses (TRUE/FALSE).
+
+```{r summarize}
+x_monthly_data <- monthly_data %>%
+  select(`Sample Name`, HH_ID, memID, today_hum_monthly_data, today_hum_sick_data) %>%
+  mutate(sample_name = `Sample Name`) %>%
+  mutate(hhID        = HH_ID) %>%
+  mutate(date        = coalesce(today_hum_monthly_data, today_hum_sick_data)) %>%
+  mutate(sick_status = grepl("R$", sample_name)) %>%
+  mutate(sampleID    = str_extract(sample_name, ".*[^-R]")) %>%
+  select(sample_name, hhID, memID, date, sick_status, sampleID) %>%
+  arrange(sick_status, hhID, memID, date, sample_name)
+
+x_qpcr_data <- qpcr_data %>%
+  select(`Sample Name`, pf_pcr_infection_status) %>%
+  mutate(sample_name = `Sample Name`) %>%
+  mutate(hhID        = str_extract(sample_name, "^[KMS]\\d{2}")) %>%
+  mutate(memID       = str_extract(sample_name, "(?<=-)[1-9]?\\d(?=[AB-]|$)")) %>%
+  mutate(altID       = str_extract(sample_name, "(?<=\\d)[AB]")) %>%
+  mutate(date        = dmy(str_extract(sample_name, "(?<=-)\\d{6}(?=-)"))) %>%
+  mutate(sick_status = grepl("R$", `Sample Name`)) %>%
+  mutate(sampleID    = str_extract(sample_name, ".*[^-R]")) %>%
+  mutate(pf_status   = (pf_pcr_infection_status == "positive")) %>%
+  select(sample_name, hhID, memID, altID, date, sick_status, sampleID, pf_status) %>%
+  arrange(sick_status, hhID, memID, date, altID, pf_status, sample_name)
+
+sum(duplicated(x_monthly_data$sampleID))
+sum(duplicated(x_qpcr_data$sampleID))
+sum(!is.na(x_qpcr_data$altID))
+x_monthly_data %>% filter(sampleID %in% sampleID[duplicated(sampleID)])
+x_qpcr_data    %>% filter(sampleID %in% sampleID[duplicated(sampleID)])
+x_qpcr_data %>% filter(!is.na(altID)) %>% select(sample_name, pf_status)
+```
+
+###Merge
+
+```{r prep matching}
+# don't trust library functions for detecting/merging miscoded entries. Implementing all parts from scratch
+
+x_monthly_data %<>%
+  mutate(true_sample_name=NA) %>%
+  mutate_at(c("true_sample_name"), as.character)
+x_qpcr_data %<>%
+  mutate(true_sample_name=NA) %>%
+  mutate_at(c("true_sample_name"), as.character)
+
+# Remove NA values from all columns of a dataset.
+clean_na <- function(df) {
+  for(k in 1:ncol(df)) {
+    df[duplicated(df[, k]), k] <- NA  # remove duplicates
+    df[, k] %<>% { .[!is.na(.)][1:length(.)] }  # condense values and resize to original length
+  }
+  df %<>% filter_all(any_vars(!is.na(.)))  # remove rows with only NAs
+  return(df)
+}
+
+# Match monthly/qPCR data entries by date.
+match_dates <- function(monthly, qpcr, sick_status, min_date_tol, max_date_tol) {
+  # assumes datasets are sorted by sick_status
+  if(sick_status) {
+    i <- min(which(monthly$sick_status))  # monthly dataset index
+    j <- min(which(qpcr$sick_status))  # qPCR dataset index
+    max_i <- nrow(monthly)
+    max_j <- nrow(qpcr)
+    matched_entries   <- data.frame(matrix(ncol=2, nrow=1+min(max_i-i, max_j-j)))
+    misdated_entries  <- data.frame(matrix(ncol=2, nrow=1+min(max_i-i, max_j-j)))
+    unmatched_entries <- data.frame(matrix(ncol=2, nrow=1+max_i-i+max_j-j))
+    print(paste("Sick", i, max_i, j, max_j));
+  } else {
+    i <- 1
+    j <- 1
+    max_i <- min(which(monthly$sick_status)) - 1
+    max_j <- min(which(qpcr$sick_status)) - 1
+    matched_entries   <- data.frame(matrix(ncol=2, nrow=min(max_i, max_j)))
+    misdated_entries  <- data.frame(matrix(ncol=2, nrow=min(max_i, max_j)))
+    unmatched_entries <- data.frame(matrix(ncol=2, nrow=max_i+max_j))
+    print(paste("Non-sick", i, max_i, j, max_j));
+  }
+  names(matched_entries)   <- c("monthly","qpcr")
+  names(misdated_entries)  <- c("monthly","qpcr")
+  names(unmatched_entries) <- c("monthly","qpcr")
+  matched_ind   <- 1
+  misdated_ind  <- 1
+  unmatched_ind <- 1
+  
+  # each condition is tested separately to ensure hierarchy of comparisons
+  # assumes datasets are sorted by hhID, memID, date, altID (if exists)
+  unmatched_flag <- TRUE  # temporary flag for when a qPCR entry could not be matched
+  while(i <= max_i & j <= max_j) {
+    if(is.na(qpcr$altID[[j]])) {
+      if(is.na(monthly$true_sample_name[[i]]) & is.na(qpcr$true_sample_name[[j]])) {
+        if(monthly$hhID[[i]] == qpcr$hhID[[j]]) {  # hhIDs match
+          if(monthly$memID[[i]] == qpcr$memID[[j]]) {  # memIDs match
+            if(monthly$date[[i]] == qpcr$date[[j]]) {  # dates match
+              monthly$true_sample_name[[i]] <- monthly$sample_name[[i]]
+              qpcr$true_sample_name[[j]]    <- qpcr$sample_name[[j]]
+              matched_entries[matched_ind, ] <- c(monthly$sample_name[[i]], qpcr$sample_name[[j]])
+              i <- i+1; j <- j+1; matched_ind <- matched_ind+1
+            } else if(monthly$date[[i]] > qpcr$date[[j]]) {
+              for(k in min_date_tol:max_date_tol) {   # monthly date may be 1-6 days later than qPCR date
+                if(monthly$date[[i]] == qpcr$date[[j]] + k) {  # dates match within tolerated bound
+                  monthly$true_sample_name[[i]] <- monthly$sample_name[[i]]
+                  qpcr$true_sample_name[[j]]    <- monthly$sample_name[[i]]
+                  misdated_entries[misdated_ind, ] <- c(monthly$sample_name[[i]], qpcr$sample_name[[j]])
+                  misdated_ind <- misdated_ind+1
+                  unmatched_flag <- FALSE
+                  break
+                }
+              }
+              if(unmatched_flag) {  # dates do not match and could not be resolved
+                unmatched_entries[[unmatched_ind, 2]] <- qpcr$sample_name[[j]]
+                unmatched_ind <- unmatched_ind+1
+                unmatched_flag <- TRUE  # reset flag
+              } else { i <- i+1 }
+              j <- j+1
+            } else {  # dates differ in a way that is unresolvable (monthly date < qPCR date)
+              unmatched_entries[[unmatched_ind, 1]] <- monthly$sample_name[[i]]
+              unmatched_ind <- unmatched_ind+1
+              i <- i+1
+            }
+          } else if(monthly$memID[[i]] > qpcr$memID[[j]]) {  # memIDs differ
+            unmatched_entries[[unmatched_ind, 2]] <- qpcr$sample_name[[j]]
+            unmatched_ind <- unmatched_ind+1
+            j <- j+1
+          } else {
+            unmatched_entries[[unmatched_ind, 1]] <- monthly$sample_name[[i]]
+            unmatched_ind <- unmatched_ind+1
+            i <- i+1
+          }
+        } else if(monthly$hhID[[i]] > qpcr$hhID[[j]]) {  # hhIDs differ
+          unmatched_entries[[unmatched_ind, 2]] <- qpcr$sample_name[[j]]
+          unmatched_ind <- unmatched_ind+1
+          j <- j+1
+        } else {
+          unmatched_entries[[unmatched_ind, 1]] <- monthly$sample_name[[i]]
+          unmatched_ind <- unmatched_ind+1
+          i <- i+1
+        }
+      } else {  # entry was already matched
+        if(!is.na(monthly$true_sample_name[[i]])) { i <- i+1 }
+        if(!is.na(qpcr$true_sample_name[[j]]))    { j <- j+1 }
+      }
+    } else {  # entry has replicates that cannot yet be resolved
+      unmatched_entries[[unmatched_ind, "qpcr"]] <- qpcr$sample_name[[j]]
+      unmatched_ind <- unmatched_ind+1
+      j <- j+1
+    }
+  }
+  
+  matched_entries   %<>% drop_na()
+  misdated_entries  %<>% drop_na()
+  unmatched_entries %<>% clean_na()
+  return(list(monthly, qpcr, matched_entries, misdated_entries, unmatched_entries))
+}
+
+matched_entries   <- data.frame(matrix(ncol=2, nrow=0))
+misdated_entries  <- data.frame(matrix(ncol=2, nrow=0))
+unmatched_entries <- data.frame(matrix(ncol=2, nrow=0))  # independent columns (monthly/qPCR entries not paired)
+
+```
+
+**2085 pairs** of monthly and qPCR entries matched successfully. (4170 total matches)
+
+1056 monthly and 805 qPCR entries are not yet matched. (1861 total entries)
+
+```{r match dates}
+# Match monthly/qPCR entries by exact sample name.
+
+x_monthly_data$true_sample_name <- ifelse(x_monthly_data$sample_name %in% x_qpcr_data$sample_name,
+                                          x_monthly_data$sample_name, NA)
+x_qpcr_data$true_sample_name    <- ifelse(x_qpcr_data$sample_name %in% x_monthly_data$sample_name,
+                                          x_qpcr_data$sample_name, NA)
+
+sum(!is.na(x_monthly_data$true_sample_name))
+sum(!is.na(x_qpcr_data$true_sample_name))
+sum(is.na(x_monthly_data$true_sample_name))
+sum(is.na(x_qpcr_data$true_sample_name))
+```
+
+**525 pairs** of monthly and qPCR entries matched with dates adjusted 1-6 days. (1050 total misdated matches)
+
+**126 monthly** and **101 qPCR entries** did not match. (227 total non-matches)
+
+```{r resolve by dates (1-6)}
+# Try resolving by date, allowing monthly dates to be 1-6 d behind qPCR dates.
+
+.match_nonsick <- match_dates(x_monthly_data, x_qpcr_data, FALSE, 1, 6)
+x_monthly_data <- .match_nonsick[[1]]
+x_qpcr_data    <- .match_nonsick[[2]]
+.match_sick    <- match_dates(x_monthly_data, x_qpcr_data, TRUE, 1, 6)
+x_monthly_data <- .match_sick[[1]]
+x_qpcr_data    <- .match_sick[[2]]
+
+.matched   <- rbind(.match_nonsick[[3]], .match_sick[[3]])
+.misdated  <- rbind(.match_nonsick[[4]], .match_sick[[4]])
+.unmatched <- rbind(.match_nonsick[[5]], .match_sick[[5]]) %>% clean_na()
+
+matched_entries   %<>% rbind(.matched) %>% arrange(monthly)
+misdated_entries  %<>% rbind(.misdated) %>% arrange(monthly)
+unmatched_entries %<>% rbind(.unmatched) %>% clean_na() %>% arrange(monthly)
+
+nrow(.matched)
+nrow(.misdated)
+max(which(!is.na(.unmatched$monthly)))
+max(which(!is.na(.unmatched$qpcr)))
+
+.matched
+.misdated
+.unmatched
+```
+
+```{r resolve by longer dates (7-12)}
+# Try resolving by date, this time allowing monthly dates to be 7-12 d ahead of qPCR dates.
+
+.match_nonsick_longer <- match_dates(x_monthly_data, x_qpcr_data, FALSE, 1, 6)
+x_monthly_data <- .match_nonsick_longer[[1]]
+x_qpcr_data    <- .match_nonsick_longer[[2]]
+.match_sick_longer    <- match_dates(x_monthly_data, x_qpcr_data, TRUE, 1, 6)
+x_monthly_data <- .match_sick_longer[[1]]
+x_qpcr_data    <- .match_sick_longer[[2]]
+
+.matched   <- rbind(.match_nonsick_longer[[3]], .match_sick_longer[[3]])
+.misdated  <- rbind(.match_nonsick_longer[[4]], .match_sick_longer[[4]])
+.unmatched <- rbind(.match_nonsick_longer[[5]], .match_sick_longer[[5]]) %>% clean_na()
+
+matched_entries   %<>% rbind(.matched) %>% arrange(monthly)
+misdated_entries  %<>% rbind(.misdated) %>% arrange(monthly)
+unmatched_entries %<>% rbind(.unmatched) %>% clean_na() %>% arrange(monthly)
+
+nrow(.matched)
+nrow(.misdated)
+max(which(!is.na(.unmatched$monthly)))
+max(which(!is.na(.unmatched$qpcr)))
+
+.matched
+.misdated
+.unmatched
+```
+

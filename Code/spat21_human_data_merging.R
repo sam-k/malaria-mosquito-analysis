@@ -36,19 +36,29 @@ load(CLEANED_FP)  # monthly_data, qpcr_data
 
 #### ------------ standardize IDs by date ------------- ####
 
+monthly_data <- 
+
+
+
+
+
+
+
+
+
 # Remove duplicate sick/non-sick entries within each dataset.
 
 monthly_truedata <- monthly_data %>%
-  mutate(sickID = str_extract(`Sample Name`, "R$")) %>%
+  mutate(sickID = grepl("R$", `Sample Name`)) %>%
   mutate(date   = coalesce(today_hum_monthly_data, today_hum_sick_data)) %>%
-  arrange(date, HH_ID, memID)
+  arrange(date, HH_ID, memID, sickID)
 qpcr_truedata <- qpcr_data %>%
   mutate(date   = dmy(str_extract(`Sample Name`, "(?<=-)\\d{6}(?=-)"))) %>%
   mutate(HH_ID  = str_extract(`Sample Name`, "^[KMS]\\d{2}")) %>%
   mutate(memID  = str_extract(`Sample Name`, "(?<=-)[1-9]?\\d(?=[AB-]|$)")) %>%
   mutate(altID  = str_extract(`Sample Name`, "(?<=\\d)[AB]")) %>%
-  mutate(sickID = str_extract(`Sample Name`, "R$")) %>%
-  arrange(date, HH_ID, memID, `Sample Name`)
+  mutate(sickID = grepl("R$", `Sample Name`)) %>%
+  arrange(date, HH_ID, memID, `Sample Name`, sickID)
 
 x_monthly_data <- monthly_truedata %>%  # temporary: testing w/ just IDs
   select(`Sample Name`, HH_ID, memID, sickID, date) %>%
@@ -112,28 +122,33 @@ x_qpcr_data <- qpcr_truedata %>%
 while(.i <= nrow(x_monthly_data) & .j <= nrow(x_qpcr_data)) {
   if(x_monthly_data$HH_ID[[.i]] == x_qpcr_data$HH_ID[[.j]]) {
     if(x_monthly_data$memID[[.i]] == x_qpcr_data$memID[[.j]]) {
-      if(x_monthly_data$date[[.i]] > x_qpcr_data$date[[.j]])    {
-        .monthly_date_i <- x_monthly_data$date[[.i]]
-        .qpcr_date_j    <- x_qpcr_data$date[[.j]]
-        for(.k in 1:6) {  # monthly visit date can be 0-6 days later than qPCR DBS date
-          if(.monthly_date_i == .qpcr_date_j + .k) {
-            if(.dup) {
-              .misdated_dup_monthly[[.i]]  <- x_monthly_data$`Sample Name`[[.i]]
-              .misdated_dup_corr_pcr[[.j]] <- x_qpcr_data$`Sample Name`[[.j]]
-            } else {
-              .misdated_monthly[[.i]]   <- x_monthly_data$`Sample Name`[[.i]]
-              .misdated_corr_qpcr[[.j]] <- x_qpcr_data$`Sample Name`[[.j]]
-              x_monthly_data$date[[.i]]          <- .qpcr_date_j
-              x_monthly_data$sampleID[[.i]]      <- x_qpcr_data$sampleID[[.j]]
-              x_monthly_data$`Sample Name`[[.i]] <- x_qpcr_data$`Sample Name`[[.j]]
-              .dup <- TRUE
+      if(x_monthly_data$sickID[[.i]] == x_qpcr_data$sickID[[.j]]) {
+        if(x_monthly_data$date[[.i]] > x_qpcr_data$date[[.j]]) {
+          .monthly_date_i <- x_monthly_data$date[[.i]]
+          .qpcr_date_j    <- x_qpcr_data$date[[.j]]
+          for(.k in 1:6) {  # monthly visit date can be 0-6 days later than qPCR DBS date
+            if(.monthly_date_i == .qpcr_date_j + .k) {
+              if(.dup) {
+                .misdated_dup_monthly[[.i]]  <- x_monthly_data$`Sample Name`[[.i]]
+                .misdated_dup_corr_pcr[[.j]] <- x_qpcr_data$`Sample Name`[[.j]]
+              } else {
+                .misdated_monthly[[.i]]   <- x_monthly_data$`Sample Name`[[.i]]
+                .misdated_corr_qpcr[[.j]] <- x_qpcr_data$`Sample Name`[[.j]]
+                x_monthly_data$date[[.i]]          <- .qpcr_date_j
+                x_monthly_data$sampleID[[.i]]      <- x_qpcr_data$sampleID[[.j]]
+                x_monthly_data$`Sample Name`[[.i]] <- x_qpcr_data$`Sample Name`[[.j]]
+                .dup <- TRUE
+              }
+              break
             }
-            break
           }
+          .j <- .j+1
+        } else {
+          if(x_monthly_data$date[[.i]] < x_qpcr_data$date[[.j]]) { .i <- .i+1 } else { .j <- .j+1 }
+          .dup <- FALSE
         }
-        .j <- .j+1
       } else {
-        if(x_monthly_data$date[[.i]] < x_qpcr_data$date[[.j]]) { .i <- .i+1 } else { .j <- .j+1 }
+        if(x_monthly_data$sickID[[.i]] < x_qpcr_data$sickID[[.j]]) { .i <- .i+1 } else { .j <- .j+1 }
         .dup <- FALSE
       }
     } else {
