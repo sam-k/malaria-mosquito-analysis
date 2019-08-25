@@ -6,8 +6,8 @@
 *.rdata
 
 # Protocols #
+Protocols\ and\ Criteria/
 *.docx
-*.pdf
 *.pptx
 
 # Temp files #
